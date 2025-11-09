@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saudi Future Dreams</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Signika:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <header class="hero" id="landing">
+      <div class="sky">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="shooting-star"></div>
+      </div>
+      <div class="hero-visual">
+        <div class="landmark kingdom-tower">
+          <div class="arch"></div>
+        </div>
+        <div class="landmark faisaliah-tower">
+          <div class="spire"></div>
+          <div class="sphere"></div>
+        </div>
+        <div class="landmark kadf-tower">
+          <div class="panels"></div>
+        </div>
+        <div class="landmark diriyah">
+          <div class="brick"></div>
+          <div class="gate"></div>
+        </div>
+        <div class="flag">
+          <div class="flagpole"></div>
+          <div class="flag-fabric">
+            <span class="flag-text">لَا إِلَٰهَ إِلَّا ٱللَّٰهُ</span>
+          </div>
+        </div>
+        <div class="ground"></div>
+        <div class="sparkle sparkle-1"></div>
+        <div class="sparkle sparkle-2"></div>
+        <div class="sparkle sparkle-3"></div>
+      </div>
+      <div class="hero-content">
+        <span class="tagline">Saudi Kids x AI</span>
+        <h1>Let's draw the future of Saudi Arabia with AI!</h1>
+        <p>
+          Describe how you imagine your favorite place in Saudi Arabia powered by
+          artificial intelligence, and watch your ideas come alive as vibrant art.
+        </p>
+        <div class="cta-buttons">
+          <button id="openBookBtn" class="btn primary">Explore the Visual Book</button>
+          <button id="openCanvasBtn" class="btn secondary">Start Painting</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="canvasView" class="view hidden">
+        <div class="view-header">
+          <h2>Imagine a place…</h2>
+          <p>
+            Tell us how a place in Saudi Arabia looks when AI helps it shine in the future.
+            We will turn your story into a glowing illustration.
+          </p>
+        </div>
+        <form id="promptForm" class="prompt-form">
+          <label for="promptInput">Describe your futuristic Saudi scene</label>
+          <textarea
+            id="promptInput"
+            placeholder="Example: 'The Kingdom Tower covered in smart gardens that change colors with the sunset while drones guide visitors in Arabic and English.'"
+            rows="5"
+            required
+          ></textarea>
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Generate Artwork</button>
+            <button type="button" id="backToLandingFromCanvas" class="btn ghost">Back</button>
+          </div>
+        </form>
+        <div id="generationStatus" class="status-message hidden"></div>
+        <div id="generatedResult" class="generated-result hidden">
+          <img id="generatedImage" alt="Generated Saudi future scene" loading="lazy" />
+          <div class="result-actions">
+            <button id="addToBookBtn" class="btn highlight">Add to Saudi Talent Book</button>
+            <button id="regenerateBtn" class="btn secondary">Try a new idea</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="bookView" class="view hidden">
+        <div class="view-header">
+          <h2>Saudi Talent Paint</h2>
+          <p>
+            Flip through the living book of children's visions. Each page celebrates a young
+            Saudi dreamer.
+          </p>
+        </div>
+        <div class="book-shell">
+          <div class="book-cover">
+            <div class="cover-inner">
+              <h3>Saudi Talent Paint</h3>
+              <p>A collection of bright futures drawn with AI imagination.</p>
+              <div class="cover-decor cover-decor-top"></div>
+              <div class="cover-decor cover-decor-bottom"></div>
+            </div>
+          </div>
+          <div class="book-pages">
+            <button id="prevPageBtn" class="nav-btn" aria-label="Previous page">‹</button>
+            <div class="page-display">
+              <div class="page-number">
+                Page <span id="currentPageIndex">1</span>/<span id="totalPages">1</span>
+              </div>
+              <div class="page-art">
+                <img id="pageImage" alt="Kid generated artwork" loading="lazy" />
+              </div>
+              <div class="page-meta">
+                <div class="kid-name">
+                  Made by <span id="pageKidName">—</span>
+                </div>
+                <div class="generated-date">
+                  On <span id="pageDate">—</span>
+                </div>
+                <div class="page-prompt">
+                  <span class="label">Story:</span>
+                  <p id="pagePrompt">—</p>
+                </div>
+              </div>
+            </div>
+            <button id="nextPageBtn" class="nav-btn" aria-label="Next page">›</button>
+          </div>
+        </div>
+        <div class="view-footer">
+          <button id="backToLandingFromBook" class="btn ghost">Back</button>
+          <button id="jumpToCanvasFromBook" class="btn secondary">Create a new page</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="nameDialog">
+      <form method="dialog" id="nameForm">
+        <h3>Add your masterpiece to the Saudi Talent Book</h3>
+        <label for="kidNameInput">Who should we credit?</label>
+        <input
+          type="text"
+          id="kidNameInput"
+          name="kidName"
+          placeholder="Write your name here"
+          maxlength="40"
+          required
+        />
+        <menu>
+          <button value="cancel" class="btn ghost">Cancel</button>
+          <button value="confirm" class="btn primary">Add to book</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <footer class="site-footer">
+      <p>
+        Crafted for young Saudi dreamers • Empowering creativity with responsible AI
+      </p>
+    </footer>
+
+    <script src="assets/app.js" type="module"></script>
+  </body>
+</html>
+
