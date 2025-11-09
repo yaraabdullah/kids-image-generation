@@ -185,13 +185,36 @@ p {
 
 .hero-visual {
   position: relative;
-  min-height: 420px;
   z-index: 1;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  gap: clamp(1.5rem, 3vw, 3rem);
-  padding-bottom: 3rem;
+  padding-bottom: clamp(1.5rem, 4vw, 3rem);
+}
+
+.hero-painting {
+  width: min(100%, 560px);
+  border-radius: 30px;
+  border: 6px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 35px 65px rgba(4, 22, 34, 0.28);
+  object-fit: cover;
+}
+
+.saudi-flag-badge {
+  position: absolute;
+  right: 8%;
+  bottom: 10%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 18px 30px rgba(4, 22, 34, 0.18);
+  animation: sway 6s ease-in-out infinite alternate;
+}
+
+.saudi-flag-badge img {
+  display: block;
+  width: 150px;
+  height: auto;
 }
 
 .ground {
@@ -837,11 +860,19 @@ menu {
 
   .hero-visual {
     order: 2;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
   .hero-content {
     order: 1;
     margin: 0 auto;
+  }
+
+  .saudi-flag-badge {
+    position: static;
+    margin: 0 auto;
+    display: inline-flex;
   }
 
   .book-shell {
@@ -856,6 +887,11 @@ menu {
 @media (max-width: 640px) {
   .hero {
     padding: 3rem 1.2rem;
+  }
+
+  .hero-painting {
+    border-width: 4px;
+    border-radius: 22px;
   }
 
   .cta-buttons {
