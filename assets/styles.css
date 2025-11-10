@@ -36,7 +36,7 @@ body {
   background-image: url("./images/cover.png");
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-size: clamp(280px, 42vw, 520px);
+  background-size: 100% auto;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -67,59 +67,12 @@ p {
 }
 
 .hero {
-  padding: clamp(4rem, 10vw, 6rem) clamp(1.5rem, 5vw, 3.5rem);
+  padding: clamp(5rem, 12vw, 7rem) clamp(1.5rem, 5vw, 3.5rem) clamp(3rem, 8vw, 5rem);
   display: grid;
-  gap: clamp(2rem, 5vw, 3rem);
-  align-items: center;
   justify-items: center;
   text-align: center;
   color: var(--text-main);
   background: transparent;
-}
-
-.hero-flag {
-  position: absolute;
-  top: 18%;
-  left: clamp(6%, 12vw, 14%);
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  z-index: 1;
-  animation: sway 5s ease-in-out infinite alternate;
-}
-
-.hero-flagpole {
-  width: 10px;
-  height: clamp(240px, 32vw, 280px);
-  background: linear-gradient(180deg, #fdfdfd 0%, #d7d7d7 60%, #a8a8a8 100%);
-  border-radius: 10px;
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.45);
-}
-
-.hero-flag-cloth {
-  position: relative;
-  padding: 0.4rem 0.85rem 0.4rem 0.6rem;
-  border-radius: 14px 22px 22px 14px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(3px);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35), 0 16px 28px rgba(4, 22, 34, 0.22);
-}
-
-.hero-flag-cloth img {
-  display: block;
-  width: clamp(190px, 26vw, 240px);
-  height: auto;
-  transform-origin: left center;
-  animation: flutter 3s ease-in-out infinite;
-}
-
-@keyframes sway {
-  0% {
-    transform: rotate(-1deg);
-  }
-  100% {
-    transform: rotate(1.2deg);
-  }
 }
 
 .hero-content {
@@ -132,6 +85,7 @@ p {
   box-shadow: 0 18px 40px rgba(4, 22, 34, 0.1);
   max-width: 540px;
   color: var(--text-main);
+  margin-top: -3rem;
 }
 
 .tagline {
