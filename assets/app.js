@@ -31,7 +31,6 @@ const kidNameInput = document.getElementById("kidNameInput");
 const bookCoverDisplay = document.getElementById("bookCoverDisplay");
 const bookPage = document.getElementById("bookPage");
 const pageIndicator = document.getElementById("pageIndicator");
-const pageDisplay = document.querySelector(".page-display");
 
 const pageElements = {
   container: bookPage,
@@ -81,7 +80,6 @@ const starterPages = [
 let bookPages = loadPages();
 let currentPageIndex = 0;
 let latestGeneration = null;
-let isTurningPage = false;
 
 initialize();
 
@@ -124,7 +122,6 @@ function attachEventListeners() {
   buttons.regenerate?.addEventListener("click", resetGeneration);
 
   buttons.prevPage?.addEventListener("click", () => {
-    if (isTurningPage) return;
     if (currentPageIndex > 0) {
       currentPageIndex -= 1;
       updateBookDisplay();
@@ -132,7 +129,6 @@ function attachEventListeners() {
   });
 
   buttons.nextPage?.addEventListener("click", () => {
-    if (isTurningPage) return;
     const total = getTotalPages();
     if (currentPageIndex < total - 1) {
       const targetIndex = currentPageIndex + 1;
@@ -254,8 +250,8 @@ function updateBookDisplay() {
   const hasEntries = Array.isArray(bookPages) && bookPages.length > 0;
   const onCover = currentPageIndex === 0 || !hasEntries;
 
-  buttons.prevPage.disabled = currentPageIndex === 0 || isTurningPage;
-  buttons.nextPage.disabled = currentPageIndex >= totalPages - 1 || isTurningPage;
+  buttons.prevPage.disabled = currentPageIndex === 0;
+  buttons.nextPage.disabled = currentPageIndex >= totalPages - 1;
 
   if (!hasEntries) {
     showCover();
@@ -275,9 +271,7 @@ function updateBookDisplay() {
 
 function showCover() {
   bookCoverDisplay?.classList.remove("hidden");
-  bookCoverDisplay?.classList.add("active");
   bookPage?.classList.add("hidden");
-  bookPage?.classList.remove("active");
   pageIndicator.textContent = "Cover";
 
   renderPageContent(null);
@@ -285,9 +279,7 @@ function showCover() {
 
 function showBookPage() {
   bookCoverDisplay?.classList.add("hidden");
-  bookCoverDisplay?.classList.remove("active");
   bookPage?.classList.remove("hidden");
-  bookPage?.classList.add("active");
 }
 
 function renderPageContent(pageData) {
@@ -380,31 +372,9 @@ function renderEntryForIndex(pageIndex) {
 
 function playCoverOpeningAnimation(targetIndex) {
   const container = pageDisplay;
-  if (!container) {
-    currentPageIndex = targetIndex;
-    updateBookDisplay();
-    return;
-  }
-
-  isTurningPage = true;
-  buttons.prevPage.disabled = true;
-  buttons.nextPage.disabled = true;
-
   renderEntryForIndex(targetIndex);
-
-  bookCoverDisplay?.classList.remove("hidden");
-  bookCoverDisplay?.classList.add("active");
-  bookPage?.classList.remove("hidden");
-  bookPage?.classList.add("active");
-
-  container.classList.add("opening");
-
-  window.setTimeout(() => {
-    container.classList.remove("opening");
-    isTurningPage = false;
-    currentPageIndex = targetIndex;
-    updateBookDisplay();
-  }, 950);
+  currentPageIndex = targetIndex;
+  updateBookDisplay();
 }
 
 document.addEventListener("keydown", (event) => {
