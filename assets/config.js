@@ -10,7 +10,7 @@ export const diffusionConfig = {
    * Only used when provider === "custom-backend".
    * Example: "https://your-domain.com/api/generate-image"
    */
-  backendEndpoint: "http://localhost:4000/generate",
+  backendEndpoint: "https://kids-imagination.vercel.app/api/generate",
   backendApiKey: null,
 
   /**
