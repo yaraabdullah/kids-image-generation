@@ -307,13 +307,10 @@ async function handleGenerate(event) {
     generatedImageEl.src = imageUrl;
     generatedImageEl.alt = styledPrompt;
     resultSection.classList.remove("hidden");
-    showStatus("Here is your future vision! Add it to the book when you're ready.", false, true);
+    showStatus(t("status.success"), false, true);
   } catch (error) {
     console.error(error);
-    showStatus(
-      "We couldn't reach our art studio. Please try again in a few moments.",
-      true
-    );
+    showStatus(t("status.error"), true);
   } finally {
     toggleFormDisabled(false);
   }
@@ -355,7 +352,7 @@ async function addLatestGenerationToBook(kidName, story) {
     highlightNewPage();
   } catch (error) {
     console.error("Unable to save artwork to Supabase", error);
-    showStatus("We couldn't save your story to the book. Please try again.", true, true);
+    showStatus(t("status.saveError"), true, true);
     throw error;
   }
 }
@@ -381,7 +378,11 @@ function updateBookDisplay() {
   showBookPage();
   renderEntryForIndex(currentPageIndex);
 
-  pageIndicator.textContent = `Page ${currentPageIndex} of ${Math.max(totalPages - 1, 1)}`;
+  const indicatorTemplate = t("book.pageIndicator");
+  const renderedIndicator = indicatorTemplate
+    .replace("{current}", currentPageIndex)
+    .replace("{total}", Math.max(totalPages - 1, 1));
+  pageIndicator.textContent = renderedIndicator;
 }
 
 function showCover() {
@@ -406,19 +407,19 @@ function renderPageContent(pageData) {
   if (isEmpty) {
     if (pageElements.image) {
       pageElements.image.src = "";
-        pageElements.image.classList.add("hidden");
+      pageElements.image.classList.add("hidden");
       pageElements.image.alt = "";
     }
     pageElements.kidName.textContent = "—";
     pageElements.date.textContent = "—";
-      pageElements.prompt.textContent = t("book.page.emptyMessage");
+    pageElements.prompt.textContent = t("book.page.emptyMessage");
     return;
   }
 
   if (pageElements.image) {
     pageElements.image.src = pageData.imageUrl;
     pageElements.image.alt = pageData.prompt;
-      pageElements.image.classList.remove("hidden");
+    pageElements.image.classList.remove("hidden");
   }
 
   pageElements.kidName.textContent = pageData.kidName;
@@ -562,12 +563,19 @@ function loadStoredLanguage() {
 
 function normalizeEntry(entry) {
   if (!entry || typeof entry !== "object") return null;
+  const rawImage = entry.imageUrl ?? entry.image_url ?? "";
+  const normalizedImage =
+    typeof rawImage === "string" && rawImage.length
+      ? rawImage.startsWith("http") || rawImage.startsWith("data:")
+        ? rawImage
+        : dataUrlFromBase64(rawImage)
+      : "";
   return {
     id: entry.id ?? entry.uuid ?? makeId(),
     kidName: entry.kidName ?? entry.kid_name ?? "—",
     story: entry.story ?? entry.prompt ?? "",
     prompt: entry.prompt ?? entry.story ?? "",
-    imageUrl: entry.imageUrl ?? entry.image_url ?? "",
+    imageUrl: normalizedImage,
     originalPrompt: entry.originalPrompt ?? entry.prompt ?? entry.story ?? "",
     generatedAt: entry.generatedAt ?? entry.created_at ?? new Date().toISOString().slice(0, 10),
   };
