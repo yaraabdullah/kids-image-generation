@@ -29,24 +29,16 @@ const nameForm = document.getElementById("nameForm");
 const kidNameInput = document.getElementById("kidNameInput");
 
 const bookCoverDisplay = document.getElementById("bookCoverDisplay");
-const bookSpread = document.getElementById("bookSpread");
+const bookPage = document.getElementById("bookPage");
 const pageIndicator = document.getElementById("pageIndicator");
 const pageDisplay = document.querySelector(".page-display");
 
-const leftPageElements = {
-  container: document.querySelector(".book-page.left"),
-  image: document.getElementById("leftPageImage"),
-  kidName: document.getElementById("leftPageKidName"),
-  date: document.getElementById("leftPageDate"),
-  prompt: document.getElementById("leftPagePrompt"),
-};
-
-const rightPageElements = {
-  container: document.querySelector(".book-page.right"),
-  image: document.getElementById("rightPageImage"),
-  kidName: document.getElementById("rightPageKidName"),
-  date: document.getElementById("rightPageDate"),
-  prompt: document.getElementById("rightPagePrompt"),
+const pageElements = {
+  container: bookPage,
+  image: document.getElementById("pageImage"),
+  kidName: document.getElementById("pageKidName"),
+  date: document.getElementById("pageDate"),
+  prompt: document.getElementById("pagePrompt"),
 };
 
 const STORAGE_KEY = "saudi-talent-book";
@@ -87,7 +79,7 @@ const starterPages = [
 ];
 
 let bookPages = loadPages();
-let currentSpreadIndex = 0;
+let currentPageIndex = 0;
 let latestGeneration = null;
 let isTurningPage = false;
 
@@ -133,21 +125,21 @@ function attachEventListeners() {
 
   buttons.prevPage?.addEventListener("click", () => {
     if (isTurningPage) return;
-    if (currentSpreadIndex > 0) {
-      currentSpreadIndex -= 1;
+    if (currentPageIndex > 0) {
+      currentPageIndex -= 1;
       updateBookDisplay();
     }
   });
 
   buttons.nextPage?.addEventListener("click", () => {
     if (isTurningPage) return;
-    const total = getTotalSpreads();
-    if (currentSpreadIndex < total - 1) {
-      const targetIndex = currentSpreadIndex + 1;
-      if (currentSpreadIndex === 0) {
+    const total = getTotalPages();
+    if (currentPageIndex < total - 1) {
+      const targetIndex = currentPageIndex + 1;
+      if (currentPageIndex === 0) {
         playCoverOpeningAnimation(targetIndex);
       } else {
-        currentSpreadIndex = targetIndex;
+        currentPageIndex = targetIndex;
         updateBookDisplay();
       }
     }
@@ -249,7 +241,7 @@ function addLatestGenerationToBook(kidName) {
   };
 
   bookPages = [...bookPages, entry];
-  currentSpreadIndex = getTotalSpreads() - 1;
+  currentPageIndex = getTotalPages() - 1;
   updateBookDisplay();
   savePages();
 
@@ -258,72 +250,71 @@ function addLatestGenerationToBook(kidName) {
 }
 
 function updateBookDisplay() {
-  const totalSpreads = getTotalSpreads();
+  const totalPages = getTotalPages();
   const hasEntries = Array.isArray(bookPages) && bookPages.length > 0;
-  const showingCover = currentSpreadIndex === 0 || !hasEntries;
+  const onCover = currentPageIndex === 0 || !hasEntries;
 
-  buttons.prevPage.disabled = currentSpreadIndex === 0 || isTurningPage;
-  buttons.nextPage.disabled = currentSpreadIndex >= totalSpreads - 1 || isTurningPage;
+  buttons.prevPage.disabled = currentPageIndex === 0 || isTurningPage;
+  buttons.nextPage.disabled = currentPageIndex >= totalPages - 1 || isTurningPage;
 
   if (!hasEntries) {
     showCover();
     return;
   }
 
-  if (showingCover) {
+  if (onCover) {
     showCover();
     return;
   }
 
-  showSpread();
-  renderSpreadForIndex(currentSpreadIndex);
+  showBookPage();
+  renderEntryForIndex(currentPageIndex);
 
-  pageIndicator.textContent = `Spread ${currentSpreadIndex} of ${Math.max(totalSpreads - 1, 1)}`;
+  pageIndicator.textContent = `Page ${currentPageIndex} of ${Math.max(totalPages - 1, 1)}`;
 }
 
 function showCover() {
   bookCoverDisplay?.classList.remove("hidden");
   bookCoverDisplay?.classList.add("active");
-  bookSpread?.classList.add("hidden");
-  bookSpread?.classList.remove("active");
+  bookPage?.classList.add("hidden");
+  bookPage?.classList.remove("active");
   pageIndicator.textContent = "Cover";
 
-  renderPage(leftPageElements, null);
-  renderPage(rightPageElements, null);
+  renderPageContent(null);
 }
 
-function showSpread() {
+function showBookPage() {
   bookCoverDisplay?.classList.add("hidden");
   bookCoverDisplay?.classList.remove("active");
-  bookSpread?.classList.remove("hidden");
-  bookSpread?.classList.add("active");
+  bookPage?.classList.remove("hidden");
+  bookPage?.classList.add("active");
 }
 
-function renderPage(sideElements, pageData) {
-  if (!sideElements?.container) return;
+function renderPageContent(pageData) {
+  if (!pageElements?.container) return;
 
   const isEmpty = !pageData;
-  sideElements.container.classList.toggle("empty", isEmpty);
+  pageElements.container.classList.toggle("empty", isEmpty);
 
   if (isEmpty) {
-    if (sideElements.image) {
-      sideElements.image.src = "";
-      sideElements.image.alt = "";
+    if (pageElements.image) {
+      pageElements.image.src = "";
+      pageElements.image.alt = "";
     }
-    sideElements.kidName.textContent = "—";
-    sideElements.date.textContent = "—";
-    sideElements.prompt.textContent = "Add a new masterpiece to fill this page.";
+    pageElements.kidName.textContent = "—";
+    pageElements.date.textContent = "—";
+    pageElements.prompt.textContent = "Add a new masterpiece to fill this page.";
     return;
   }
 
-  if (sideElements.image) {
-    sideElements.image.src = pageData.imageUrl;
-    sideElements.image.alt = pageData.prompt;
+  if (pageElements.image) {
+    pageElements.image.src = pageData.imageUrl;
+    pageElements.image.alt = pageData.prompt;
   }
 
-  sideElements.kidName.textContent = pageData.kidName;
-  sideElements.date.textContent = formatDate(pageData.generatedAt);
-  sideElements.prompt.textContent = pageData.prompt;
+  pageElements.kidName.textContent = pageData.kidName;
+  pageElements.date.textContent = formatDate(pageData.generatedAt);
+  pageElements.prompt.textContent = pageData.prompt;
 }
 
 function formatDate(dateString) {
@@ -339,9 +330,9 @@ function formatDate(dateString) {
   }
 }
 
-function getTotalSpreads() {
+function getTotalPages() {
   if (!Array.isArray(bookPages)) return 1;
-  return 1 + Math.ceil(bookPages.length / 2);
+  return 1 + bookPages.length;
 }
 
 function showStatus(message, isError = false, stayVisible = false) {
@@ -381,18 +372,16 @@ function highlightNewPage() {
   }, 2800);
 }
 
-function renderSpreadForIndex(spreadIndex) {
-  if (spreadIndex <= 0) return;
-  const leftIndex = (spreadIndex - 1) * 2;
-  const rightIndex = leftIndex + 1;
-  renderPage(leftPageElements, bookPages[leftIndex]);
-  renderPage(rightPageElements, bookPages[rightIndex]);
+function renderEntryForIndex(pageIndex) {
+  if (pageIndex <= 0) return;
+  const entryIndex = pageIndex - 1;
+  renderPageContent(bookPages[entryIndex] ?? null);
 }
 
 function playCoverOpeningAnimation(targetIndex) {
   const container = pageDisplay;
   if (!container) {
-    currentSpreadIndex = targetIndex;
+    currentPageIndex = targetIndex;
     updateBookDisplay();
     return;
   }
@@ -401,19 +390,19 @@ function playCoverOpeningAnimation(targetIndex) {
   buttons.prevPage.disabled = true;
   buttons.nextPage.disabled = true;
 
-  renderSpreadForIndex(targetIndex);
+  renderEntryForIndex(targetIndex);
 
   bookCoverDisplay?.classList.remove("hidden");
   bookCoverDisplay?.classList.add("active");
-  bookSpread?.classList.remove("hidden");
-  bookSpread?.classList.add("active");
+  bookPage?.classList.remove("hidden");
+  bookPage?.classList.add("active");
 
   container.classList.add("opening");
 
   window.setTimeout(() => {
     container.classList.remove("opening");
     isTurningPage = false;
-    currentSpreadIndex = targetIndex;
+    currentPageIndex = targetIndex;
     updateBookDisplay();
   }, 950);
 }

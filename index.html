@@ -88,42 +88,23 @@
               <div class="book-cover-page" id="bookCoverDisplay">
                 <img src="assets/images/cover-page.jpg" alt="Saudi Talent Paint book cover" loading="lazy" />
               </div>
-              <div class="book-spread hidden" id="bookSpread">
-                <article class="book-page left">
-                  <div class="page-art">
-                    <img id="leftPageImage" alt="Left page artwork" loading="lazy" />
+              <article class="book-page hidden" id="bookPage">
+                <div class="page-art">
+                  <img id="pageImage" alt="Kid generated artwork" loading="lazy" />
+                </div>
+                <div class="page-meta">
+                  <div class="kid-name">
+                    Made by <span id="pageKidName">—</span>
                   </div>
-                  <div class="page-meta">
-                    <div class="kid-name">
-                      Made by <span id="leftPageKidName">—</span>
-                    </div>
-                    <div class="generated-date">
-                      On <span id="leftPageDate">—</span>
-                    </div>
-                    <div class="page-prompt">
-                      <span class="label">Story:</span>
-                      <p id="leftPagePrompt">—</p>
-                    </div>
+                  <div class="generated-date">
+                    On <span id="pageDate">—</span>
                   </div>
-                </article>
-                <article class="book-page right">
-                  <div class="page-art">
-                    <img id="rightPageImage" alt="Right page artwork" loading="lazy" />
+                  <div class="page-prompt">
+                    <span class="label">Story:</span>
+                    <p id="pagePrompt">—</p>
                   </div>
-                  <div class="page-meta">
-                    <div class="kid-name">
-                      Made by <span id="rightPageKidName">—</span>
-                    </div>
-                    <div class="generated-date">
-                      On <span id="rightPageDate">—</span>
-                    </div>
-                    <div class="page-prompt">
-                      <span class="label">Story:</span>
-                      <p id="rightPagePrompt">—</p>
-                    </div>
-                  </div>
-                </article>
-              </div>
+                </div>
+              </article>
               <div class="page-indicator" id="pageIndicator">Cover</div>
             </div>
             <button id="nextPageBtn" class="nav-btn" aria-label="Next page">›</button>
