@@ -406,17 +406,19 @@ function renderPageContent(pageData) {
   if (isEmpty) {
     if (pageElements.image) {
       pageElements.image.src = "";
+        pageElements.image.classList.add("hidden");
       pageElements.image.alt = "";
     }
     pageElements.kidName.textContent = "—";
     pageElements.date.textContent = "—";
-    pageElements.prompt.textContent = "Add a new masterpiece to fill this page.";
+      pageElements.prompt.textContent = t("book.page.emptyMessage");
     return;
   }
 
   if (pageElements.image) {
     pageElements.image.src = pageData.imageUrl;
     pageElements.image.alt = pageData.prompt;
+      pageElements.image.classList.remove("hidden");
   }
 
   pageElements.kidName.textContent = pageData.kidName;

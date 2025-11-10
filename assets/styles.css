@@ -358,6 +358,10 @@ main:has(.view:not(.hidden)) {
   background: linear-gradient(180deg, #ffffff 0%, #f4fbff 100%);
 }
 
+.book-page .page-art img.hidden {
+  display: none;
+}
+
 .book-page.hidden {
   display: none;
 }
@@ -391,6 +395,10 @@ main:has(.view:not(.hidden)) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.page-art img.hidden {
+  display: none;
 }
 
 .page-meta {
