@@ -42,6 +42,95 @@ const pageElements = {
   prompt: document.getElementById("pagePrompt"),
 };
 
+const languageToggle = document.getElementById("toggleLanguageBtn");
+
+const LANGUAGE_STORAGE_KEY = "saudi-talent-language";
+
+const translations = {
+  en: {
+    "hero.tagline": "Saudi Kids x AI",
+    "hero.headline": "Let's draw the future of Saudi Arabia with AI!",
+    "hero.subtitle":
+      "Describe how you imagine your favorite place in Saudi Arabia powered by artificial intelligence, and watch your ideas come alive as vibrant art.",
+    "hero.ctaBook": "Explore the Visual Book",
+    "hero.ctaCanvas": "Start Painting",
+    "canvas.heading": "Imagine a place…",
+    "canvas.description":
+      "Tell us how a place in Saudi Arabia looks when AI helps it shine in the future. We will turn your story into a glowing illustration.",
+    "canvas.label": "Describe your futuristic Saudi scene",
+    "canvas.generate": "Generate Artwork",
+    "canvas.placeholder":
+      "Example: \"The Kingdom Tower covered in smart gardens that change colors with the sunset while drones guide visitors in Arabic and English.\"",
+    "button.back": "Back",
+    "result.addToBook": "Add to Saudi Talent Book",
+    "result.tryAnother": "Try a new idea",
+    "book.heading": "Saudi Talent Paint",
+    "book.description":
+      "Flip through the living book of children's visions. Each page celebrates a young Saudi dreamer.",
+    "book.create": "Create a new page",
+    "book.page.madeBy": "Made by",
+    "book.page.on": "On",
+    "book.page.storyLabel": "Story:",
+    "book.pageIndicator": "Page {current} of {total}",
+    "dialog.heading": "Add your masterpiece to the Saudi Talent Book",
+    "dialog.nameLabel": "Who should we credit?",
+    "dialog.storyLabel": "Tell us the story for this page",
+    "dialog.namePlaceholder": "Write your name here",
+    "dialog.storyPlaceholder": "Write the story, details, or feelings that go with this artwork",
+    "dialog.cancel": "Cancel",
+    "dialog.add": "Add to book",
+    "footer.tagline": "Crafted for young Saudi dreamers • Empowering creativity with responsible AI",
+    "status.generating": "Painting your story in the sky... ✨",
+    "status.success": "Here is your future vision! Add it to the book when you're ready.",
+    "status.error": "We couldn't reach our art studio. Please try again in a few moments.",
+    "status.missingPrompt": "Please describe your futuristic idea before we can paint it.",
+    "status.saveError": "We couldn't save your story to the book. Please try again.",
+    "book.page.emptyMessage": "Add a new masterpiece to fill this page.",
+  },
+  ar: {
+    "hero.tagline": "أطفال السعودية × الذكاء الاصطناعي",
+    "hero.headline": "هيا نرسم مستقبل السعودية بالذكاء الاصطناعي!",
+    "hero.subtitle":
+      "صف لنا كيف تتخيل مكانك المفضل في السعودية عندما يساعده الذكاء الاصطناعي، وسنحوّل فكرتك إلى لوحة نابضة بالحياة.",
+    "hero.ctaBook": "استكشف الكتاب الفني",
+    "hero.ctaCanvas": "ابدأ الرسم",
+    "canvas.heading": "تخيل مكاناً...",
+    "canvas.description":
+      "أخبرنا كيف يبدو أي مكان في السعودية عندما يزدهر بالذكاء الاصطناعي. سنحوّل قصتك إلى لوحة متلألئة.",
+    "canvas.label": "اكتب وصفاً لمشهدك السعودي المستقبلي",
+    "canvas.generate": "أنشئ لوحة فنية",
+    "canvas.placeholder":
+      "مثال: \"برج المملكة مغطى بحدائق ذكية تغيّر ألوانها مع الغروب بينما ترشد الطائرات المسيّرة الزوار بالعربية والإنجليزية.\"",
+    "button.back": "عودة",
+    "result.addToBook": "أضف إلى كتاب المواهب",
+    "result.tryAnother": "جرب فكرة جديدة",
+    "book.heading": "كتاب المواهب السعودية",
+    "book.description":
+      "تصفح كتاباً حياً من رؤى الأطفال. كل صفحة تحتفل بحالم سعودي صغير.",
+    "book.create": "أنشئ صفحة جديدة",
+    "book.page.madeBy": "من إبداع",
+    "book.page.on": "في",
+    "book.page.storyLabel": "القصة:",
+    "book.pageIndicator": "الصفحة {current} من {total}",
+    "dialog.heading": "أضف تحفتك إلى كتاب المواهب السعودية",
+    "dialog.nameLabel": "من صاحب هذا العمل؟",
+    "dialog.storyLabel": "اكتب القصة التي تود إضافتها إلى هذه الصفحة",
+    "dialog.namePlaceholder": "اكتب اسمك هنا",
+    "dialog.storyPlaceholder": "احكِ القصة أو التفاصيل أو المشاعر المرتبطة بهذه اللوحة",
+    "dialog.cancel": "إلغاء",
+    "dialog.add": "إضافة إلى الكتاب",
+    "footer.tagline": "صُنِع من أجل حالمين سعوديين صغار • نُطلق الإبداع بالذكاء الاصطناعي المسؤول",
+    "status.generating": "نرسم قصتك في السماء... ✨",
+    "status.success": "هذه رؤيتك المستقبلية! أضفها إلى الكتاب عندما تكون جاهزاً.",
+    "status.error": "تعذر الوصول إلى ورشة الفن. حاول مرة أخرى بعد قليل.",
+    "status.missingPrompt": "يرجى وصف فكرتك المستقبلية قبل أن نرسمها.",
+    "status.saveError": "تعذر حفظ قصتك في الكتاب. حاول مرة أخرى.",
+    "book.page.emptyMessage": "أضف تحفة جديدة لملء هذه الصفحة.",
+  },
+};
+
+let currentLanguage = loadStoredLanguage();
+
 const makeId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
@@ -90,6 +179,7 @@ let latestGeneration = null;
 initialize();
 
 async function initialize() {
+  setupLanguage();
   attachEventListeners();
   await fetchBookPages();
   updateBookDisplay();
@@ -197,14 +287,14 @@ async function handleGenerate(event) {
   event.preventDefault();
   const prompt = promptInput.value.trim();
   if (!prompt) {
-    showStatus("Please describe your futuristic idea before we can paint it.", true);
+    showStatus(t("status.missingPrompt"), true);
     return;
   }
 
   const styledPrompt = composePrompt(prompt);
 
   toggleFormDisabled(true);
-  showStatus("Painting your story in the sky... ✨", false);
+  showStatus(t("status.generating"), false);
   resultSection.classList.add("hidden");
 
   try {
@@ -387,6 +477,85 @@ function highlightNewPage() {
   setTimeout(() => {
     spreadDisplay.classList.remove("recently-added");
   }, 2800);
+}
+
+function setupLanguage() {
+  setLanguage(currentLanguage);
+  languageToggle?.addEventListener("click", () => {
+    const nextLanguage = currentLanguage === "ar" ? "en" : "ar";
+    setLanguage(nextLanguage);
+  });
+}
+
+function setLanguage(lang) {
+  currentLanguage = translations[lang] ? lang : "en";
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLanguage);
+    }
+  } catch {
+    // ignore storage errors
+  }
+
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = currentLanguage === "ar" ? "rtl" : "ltr";
+  document.body.classList.toggle("lang-ar", currentLanguage === "ar");
+
+  applyTranslations();
+  updateBookDisplay();
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.getAttribute("data-i18n");
+    const translation = t(key);
+    if (translation) {
+      element.textContent = translation;
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const key = element.getAttribute("data-i18n-placeholder");
+    const translation = t(key);
+    if (translation) {
+      element.setAttribute("placeholder", translation);
+    }
+  });
+
+  if (languageToggle) {
+    if (currentLanguage === "ar") {
+      languageToggle.textContent = "English";
+      languageToggle.setAttribute("aria-label", "Switch to English");
+    } else {
+      languageToggle.textContent = "العربية";
+      languageToggle.setAttribute("aria-label", "التبديل إلى العربية");
+    }
+  }
+}
+
+function t(key) {
+  const langPack = translations[currentLanguage] || translations.en;
+  return langPack[key] ?? translations.en[key] ?? key;
+}
+
+function loadStoredLanguage() {
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (stored === "ar" || stored === "en") {
+        return stored;
+      }
+    }
+  } catch {
+    // ignore storage read errors
+  }
+
+  const browserLanguage =
+    typeof navigator !== "undefined" && navigator.language
+      ? navigator.language.toLowerCase()
+      : "en";
+
+  return browserLanguage.startsWith("ar") ? "ar" : "en";
 }
 
 function normalizeEntry(entry) {

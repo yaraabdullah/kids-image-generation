@@ -14,16 +14,17 @@
   </head>
   <body>
     <header class="hero" id="landing">
+      <button id="toggleLanguageBtn" class="lang-toggle" type="button" aria-label="Switch language">العربية</button>
       <div class="hero-content">
-        <span class="tagline">Saudi Kids x AI</span>
-        <h1>Let's draw the future of Saudi Arabia with AI!</h1>
-        <p>
+        <span class="tagline" data-i18n="hero.tagline">Saudi Kids x AI</span>
+        <h1 data-i18n="hero.headline">Let's draw the future of Saudi Arabia with AI!</h1>
+        <p data-i18n="hero.subtitle">
           Describe how you imagine your favorite place in Saudi Arabia powered by
           artificial intelligence, and watch your ideas come alive as vibrant art.
         </p>
         <div class="cta-buttons">
-          <button id="openBookBtn" class="btn primary">Explore the Visual Book</button>
-          <button id="openCanvasBtn" class="btn secondary">Start Painting</button>
+          <button id="openBookBtn" class="btn primary" data-i18n="hero.ctaBook">Explore the Visual Book</button>
+          <button id="openCanvasBtn" class="btn secondary" data-i18n="hero.ctaCanvas">Start Painting</button>
         </div>
       </div>
     </header>
@@ -31,39 +32,40 @@
     <main>
       <section id="canvasView" class="view hidden">
         <div class="view-header">
-          <h2>Imagine a place…</h2>
-          <p>
+          <h2 data-i18n="canvas.heading">Imagine a place…</h2>
+          <p data-i18n="canvas.description">
             Tell us how a place in Saudi Arabia looks when AI helps it shine in the future.
             We will turn your story into a glowing illustration.
           </p>
         </div>
         <form id="promptForm" class="prompt-form">
-          <label for="promptInput">Describe your futuristic Saudi scene</label>
+          <label for="promptInput" data-i18n="canvas.label">Describe your futuristic Saudi scene</label>
           <textarea
             id="promptInput"
             placeholder="Example: 'The Kingdom Tower covered in smart gardens that change colors with the sunset while drones guide visitors in Arabic and English.'"
             rows="5"
             required
+            data-i18n-placeholder="canvas.placeholder"
           ></textarea>
           <div class="form-actions">
-            <button type="submit" class="btn primary">Generate Artwork</button>
-            <button type="button" id="backToLandingFromCanvas" class="btn ghost">Back</button>
+            <button type="submit" class="btn primary" data-i18n="canvas.generate">Generate Artwork</button>
+            <button type="button" id="backToLandingFromCanvas" class="btn ghost" data-i18n="button.back">Back</button>
           </div>
         </form>
         <div id="generationStatus" class="status-message hidden"></div>
         <div id="generatedResult" class="generated-result hidden">
           <img id="generatedImage" alt="Generated Saudi future scene" loading="lazy" />
           <div class="result-actions">
-            <button id="addToBookBtn" class="btn highlight">Add to Saudi Talent Book</button>
-            <button id="regenerateBtn" class="btn secondary">Try a new idea</button>
+            <button id="addToBookBtn" class="btn highlight" data-i18n="result.addToBook">Add to Saudi Talent Book</button>
+            <button id="regenerateBtn" class="btn secondary" data-i18n="result.tryAnother">Try a new idea</button>
           </div>
         </div>
       </section>
 
       <section id="bookView" class="view hidden">
         <div class="view-header">
-          <h2>Saudi Talent Paint</h2>
-          <p>
+          <h2 data-i18n="book.heading">Saudi Talent Paint</h2>
+          <p data-i18n="book.description">
             Flip through the living book of children's visions. Each page celebrates a young
             Saudi dreamer.
           </p>
@@ -81,13 +83,13 @@
                 </div>
                 <div class="page-meta">
                   <div class="kid-name">
-                    Made by <span id="pageKidName">—</span>
+                    <span data-i18n="book.page.madeBy">Made by</span> <span id="pageKidName">—</span>
                   </div>
                   <div class="generated-date">
-                    On <span id="pageDate">—</span>
+                    <span data-i18n="book.page.on">On</span> <span id="pageDate">—</span>
                   </div>
                   <div class="page-prompt">
-                    <span class="label">Story:</span>
+                    <span class="label" data-i18n="book.page.storyLabel">Story:</span>
                     <p id="pagePrompt">—</p>
                   </div>
                 </div>
@@ -98,16 +100,16 @@
           </div>
         </div>
         <div class="view-footer">
-          <button id="backToLandingFromBook" class="btn ghost">Back</button>
-          <button id="jumpToCanvasFromBook" class="btn secondary">Create a new page</button>
+          <button id="backToLandingFromBook" class="btn ghost" data-i18n="button.back">Back</button>
+          <button id="jumpToCanvasFromBook" class="btn secondary" data-i18n="book.create">Create a new page</button>
         </div>
       </section>
     </main>
 
     <dialog id="nameDialog">
       <form method="dialog" id="nameForm">
-        <h3>Add your masterpiece to the Saudi Talent Book</h3>
-        <label for="kidNameInput">Who should we credit?</label>
+        <h3 data-i18n="dialog.heading">Add your masterpiece to the Saudi Talent Book</h3>
+        <label for="kidNameInput" data-i18n="dialog.nameLabel">Who should we credit?</label>
         <input
           type="text"
           id="kidNameInput"
@@ -115,8 +117,9 @@
           placeholder="Write your name here"
           maxlength="40"
           required
+          data-i18n-placeholder="dialog.namePlaceholder"
         />
-        <label for="storyInput">Tell us the story for this page</label>
+        <label for="storyInput" data-i18n="dialog.storyLabel">Tell us the story for this page</label>
         <textarea
           id="storyInput"
           name="story"
@@ -124,16 +127,17 @@
           rows="4"
           maxlength="500"
           required
+          data-i18n-placeholder="dialog.storyPlaceholder"
         ></textarea>
         <menu>
-          <button value="cancel" class="btn ghost">Cancel</button>
-          <button value="confirm" class="btn primary">Add to book</button>
+          <button value="cancel" class="btn ghost" data-i18n="dialog.cancel">Cancel</button>
+          <button value="confirm" class="btn primary" data-i18n="dialog.add">Add to book</button>
         </menu>
       </form>
     </dialog>
 
     <footer class="site-footer">
-      <p>
+      <p data-i18n="footer.tagline">
         Crafted for young Saudi dreamers • Empowering creativity with responsible AI
       </p>
     </footer>
