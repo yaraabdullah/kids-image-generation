@@ -31,6 +31,7 @@ const kidNameInput = document.getElementById("kidNameInput");
 const bookCoverDisplay = document.getElementById("bookCoverDisplay");
 const bookSpread = document.getElementById("bookSpread");
 const pageIndicator = document.getElementById("pageIndicator");
+const pageDisplay = document.querySelector(".page-display");
 
 const leftPageElements = {
   container: document.querySelector(".book-page.left"),
@@ -88,6 +89,7 @@ const starterPages = [
 let bookPages = loadPages();
 let currentSpreadIndex = 0;
 let latestGeneration = null;
+let isTurningPage = false;
 
 initialize();
 
@@ -130,6 +132,7 @@ function attachEventListeners() {
   buttons.regenerate?.addEventListener("click", resetGeneration);
 
   buttons.prevPage?.addEventListener("click", () => {
+    if (isTurningPage) return;
     if (currentSpreadIndex > 0) {
       currentSpreadIndex -= 1;
       updateBookDisplay();
@@ -137,10 +140,16 @@ function attachEventListeners() {
   });
 
   buttons.nextPage?.addEventListener("click", () => {
+    if (isTurningPage) return;
     const total = getTotalSpreads();
     if (currentSpreadIndex < total - 1) {
-      currentSpreadIndex += 1;
-      updateBookDisplay();
+      const targetIndex = currentSpreadIndex + 1;
+      if (currentSpreadIndex === 0) {
+        playCoverOpeningAnimation(targetIndex);
+      } else {
+        currentSpreadIndex = targetIndex;
+        updateBookDisplay();
+      }
     }
   });
 }
@@ -251,32 +260,32 @@ function addLatestGenerationToBook(kidName) {
 function updateBookDisplay() {
   const totalSpreads = getTotalSpreads();
   const hasEntries = Array.isArray(bookPages) && bookPages.length > 0;
+  const showingCover = currentSpreadIndex === 0 || !hasEntries;
 
-  buttons.prevPage.disabled = currentSpreadIndex === 0;
-  buttons.nextPage.disabled = currentSpreadIndex >= totalSpreads - 1;
+  buttons.prevPage.disabled = currentSpreadIndex === 0 || isTurningPage;
+  buttons.nextPage.disabled = currentSpreadIndex >= totalSpreads - 1 || isTurningPage;
 
-  if (!hasEntries || currentSpreadIndex === 0) {
+  if (!hasEntries) {
+    showCover();
+    return;
+  }
+
+  if (showingCover) {
     showCover();
     return;
   }
 
   showSpread();
+  renderSpreadForIndex(currentSpreadIndex);
 
-  const leftIndex = (currentSpreadIndex - 1) * 2;
-  const rightIndex = leftIndex + 1;
-
-  renderPage(leftPageElements, bookPages[leftIndex]);
-  renderPage(rightPageElements, bookPages[rightIndex]);
-
-  pageIndicator.textContent = `Spread ${currentSpreadIndex} of ${Math.max(
-    totalSpreads - 1,
-    1
-  )}`;
+  pageIndicator.textContent = `Spread ${currentSpreadIndex} of ${Math.max(totalSpreads - 1, 1)}`;
 }
 
 function showCover() {
   bookCoverDisplay?.classList.remove("hidden");
+  bookCoverDisplay?.classList.add("active");
   bookSpread?.classList.add("hidden");
+  bookSpread?.classList.remove("active");
   pageIndicator.textContent = "Cover";
 
   renderPage(leftPageElements, null);
@@ -285,7 +294,9 @@ function showCover() {
 
 function showSpread() {
   bookCoverDisplay?.classList.add("hidden");
+  bookCoverDisplay?.classList.remove("active");
   bookSpread?.classList.remove("hidden");
+  bookSpread?.classList.add("active");
 }
 
 function renderPage(sideElements, pageData) {
@@ -368,6 +379,43 @@ function highlightNewPage() {
   setTimeout(() => {
     spreadDisplay.classList.remove("recently-added");
   }, 2800);
+}
+
+function renderSpreadForIndex(spreadIndex) {
+  if (spreadIndex <= 0) return;
+  const leftIndex = (spreadIndex - 1) * 2;
+  const rightIndex = leftIndex + 1;
+  renderPage(leftPageElements, bookPages[leftIndex]);
+  renderPage(rightPageElements, bookPages[rightIndex]);
+}
+
+function playCoverOpeningAnimation(targetIndex) {
+  const container = pageDisplay;
+  if (!container) {
+    currentSpreadIndex = targetIndex;
+    updateBookDisplay();
+    return;
+  }
+
+  isTurningPage = true;
+  buttons.prevPage.disabled = true;
+  buttons.nextPage.disabled = true;
+
+  renderSpreadForIndex(targetIndex);
+
+  bookCoverDisplay?.classList.remove("hidden");
+  bookCoverDisplay?.classList.add("active");
+  bookSpread?.classList.remove("hidden");
+  bookSpread?.classList.add("active");
+
+  container.classList.add("opening");
+
+  window.setTimeout(() => {
+    container.classList.remove("opening");
+    isTurningPage = false;
+    currentSpreadIndex = targetIndex;
+    updateBookDisplay();
+  }, 950);
 }
 
 document.addEventListener("keydown", (event) => {
