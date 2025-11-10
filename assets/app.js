@@ -32,6 +32,7 @@ const storyInput = document.getElementById("storyInput");
 const bookCoverDisplay = document.getElementById("bookCoverDisplay");
 const bookPage = document.getElementById("bookPage");
 const pageIndicator = document.getElementById("pageIndicator");
+const pageDisplay = document.querySelector(".page-display");
 
 const pageElements = {
   container: bookPage,
