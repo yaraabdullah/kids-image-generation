@@ -272,7 +272,7 @@ function updateBookDisplay() {
 function showCover() {
   bookCoverDisplay?.classList.remove("hidden");
   bookPage?.classList.add("hidden");
-  pageIndicator.textContent = "Cover";
+  pageIndicator.textContent = "";
 
   renderPageContent(null);
 }

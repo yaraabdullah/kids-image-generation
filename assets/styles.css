@@ -32,7 +32,11 @@ body {
   margin: 0;
   font-family: "Baloo 2", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--text-main);
-  background: #f4f9ff;
+  background-color: #f7d7b4;
+  background-image: url("./images/background.png");
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: clamp(220px, 35vw, 420px);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -70,7 +74,7 @@ p {
   justify-items: center;
   text-align: center;
   color: var(--text-main);
-  background: #f4f9ff;
+  background: transparent;
 }
 
 .hero-flag {
