@@ -41,19 +41,19 @@ const pageElements = {
   prompt: document.getElementById("pagePrompt"),
 };
 
-const STORAGE_KEY = "saudi-talent-book";
-
 const makeId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `page-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-const starterPages = [
+const fallbackPages = [
   {
     id: makeId(),
     kidName: "Aisha",
     prompt:
       "The Kingdom Tower glowing with holographic palm trees that welcome families in Arabic and English, while floating lantern drones guide kids to rooftop playgrounds.",
+    story:
+      "Aisha imagines the Kingdom Tower greeting every family with magical holographic palms and gentle drone guides that speak Arabic and English.",
     imageUrl:
       "https://image.pollinations.ai/prompt/The%20Kingdom%20Tower%20covered%20in%20hanging%20gardens%20and%20AI%20holograms,%20children%E2%80%99s%20play%20drones,%20sunset,%20vibrant%20colors?seed=1001",
     generatedAt: "2025-05-16",
@@ -63,6 +63,8 @@ const starterPages = [
     kidName: "Salem",
     prompt:
       "Diriyah transformed into a smart heritage village where AI storytellers paint the mud walls with history and the date trees light up the paths for families.",
+    story:
+      "Salem’s story tells of Diriyah’s mud walls glowing with AI storytellers while date trees light safe paths for every visiting family.",
     imageUrl:
       "https://image.pollinations.ai/prompt/Diriyah%20heritage%20village%20with%20futuristic%20AI%20lights%20and%20storytelling%20holograms%20for%20kids,%20warm%20glow?seed=1002",
     generatedAt: "2025-05-18",
@@ -72,20 +74,23 @@ const starterPages = [
     kidName: "Razan",
     prompt:
       "A flying tram connects Al Faisaliah Tower to a floating cloud park where AI caretakers grow flowers in the sky and inspire young inventors.",
+    story:
+      "Razan dreams of a flying tram to a cloud park, where AI caretakers grow sky-flowers that inspire every young inventor who visits.",
     imageUrl:
       "https://image.pollinations.ai/prompt/Al%20Faisaliah%20Tower%20with%20floating%20gardens%20and%20AI%20flying%20tram,%20kids%20exploring,%20bright%20sky?seed=1003",
     generatedAt: "2025-05-20",
   },
 ];
 
-let bookPages = loadPages();
+let bookPages = [];
 let currentPageIndex = 0;
 let latestGeneration = null;
 
 initialize();
 
-function initialize() {
+async function initialize() {
   attachEventListeners();
+  await fetchBookPages();
   updateBookDisplay();
   hideStatus();
 }
@@ -107,7 +112,7 @@ function attachEventListeners() {
     setTimeout(() => kidNameInput.focus(), 80);
   });
 
-  nameForm?.addEventListener("submit", (event) => {
+  nameForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formAction = event.submitter?.value;
     if (formAction === "cancel") {
@@ -118,8 +123,12 @@ function attachEventListeners() {
     const kidName = kidNameInput.value.trim();
     const story = storyInput.value.trim();
     if (!kidName || !story) return;
-    addLatestGenerationToBook(kidName, story);
     nameDialog.close();
+    try {
+      await addLatestGenerationToBook(kidName, story);
+    } catch (error) {
+      console.error("Failed to add story to book", error);
+    }
   });
 
   buttons.regenerate?.addEventListener("click", resetGeneration);
@@ -160,29 +169,27 @@ function showView(view) {
   }
 }
 
-function loadPages() {
+async function fetchBookPages() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return [...starterPages];
+    const response = await fetch("/api/artwork");
+    if (!response.ok) {
+      throw new Error(`Failed to load artwork: ${response.status}`);
     }
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return [...starterPages];
-    }
-    return parsed;
+    const data = await response.json();
+    const entries =
+      Array.isArray(data) && data.length
+        ? data.map(normalizeEntry).filter(Boolean)
+        : fallbackPages.map((entry) => ({ ...entry }));
+    bookPages = entries;
   } catch (error) {
-    console.error("Failed to load pages, restoring defaults", error);
-    return [...starterPages];
+    console.error("Unable to load book pages from Supabase", error);
+    bookPages = fallbackPages.map((entry) => ({ ...entry }));
   }
-}
 
-function savePages() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(bookPages));
-  } catch (error) {
-    console.error("Unable to save pages", error);
+  if (!Number.isInteger(currentPageIndex) || currentPageIndex < 0) {
+    currentPageIndex = 0;
   }
+  currentPageIndex = Math.min(currentPageIndex, Math.max(0, getTotalPages() - 1));
 }
 
 async function handleGenerate(event) {
@@ -228,26 +235,38 @@ async function generateImage(prompt) {
   return generateViaPollinations(prompt);
 }
 
-function addLatestGenerationToBook(kidName, story) {
+async function addLatestGenerationToBook(kidName, story) {
   if (!latestGeneration) return;
 
-  const entry = {
-    id: makeId(),
+  const payload = {
     kidName,
-    prompt: latestGeneration.prompt,
     story,
+    prompt: latestGeneration.prompt,
     imageUrl: latestGeneration.imageUrl,
-    originalPrompt: latestGeneration.prompt,
-    generatedAt: new Date().toISOString().slice(0, 10),
   };
 
-  bookPages = [...bookPages, entry];
-  currentPageIndex = getTotalPages() - 1;
-  updateBookDisplay();
-  savePages();
+  try {
+    const response = await fetch("/api/artwork", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-  showView("book");
-  highlightNewPage();
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(errorMessage || "Failed to save artwork");
+    }
+
+    await fetchBookPages();
+    currentPageIndex = getTotalPages() - 1;
+    updateBookDisplay();
+    showView("book");
+    highlightNewPage();
+  } catch (error) {
+    console.error("Unable to save artwork to Supabase", error);
+    showStatus("We couldn't save your story to the book. Please try again.", true, true);
+    throw error;
+  }
 }
 
 function updateBookDisplay() {
@@ -367,6 +386,19 @@ function highlightNewPage() {
   setTimeout(() => {
     spreadDisplay.classList.remove("recently-added");
   }, 2800);
+}
+
+function normalizeEntry(entry) {
+  if (!entry || typeof entry !== "object") return null;
+  return {
+    id: entry.id ?? entry.uuid ?? makeId(),
+    kidName: entry.kidName ?? entry.kid_name ?? "—",
+    story: entry.story ?? entry.prompt ?? "",
+    prompt: entry.prompt ?? entry.story ?? "",
+    imageUrl: entry.imageUrl ?? entry.image_url ?? "",
+    originalPrompt: entry.originalPrompt ?? entry.prompt ?? entry.story ?? "",
+    generatedAt: entry.generatedAt ?? entry.created_at ?? new Date().toISOString().slice(0, 10),
+  };
 }
 
 function renderEntryForIndex(pageIndex) {
