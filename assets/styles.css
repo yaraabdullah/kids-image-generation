@@ -307,7 +307,7 @@ main:has(.view:not(.hidden)) {
 
 .book-cover-page,
 .book-page {
-  width: clamp(260px, 60vw, 560px);
+  width: clamp(240px, 50vw, 480px);
   aspect-ratio: 3 / 4;
   border-radius: 18px;
   overflow: hidden;
