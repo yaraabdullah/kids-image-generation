@@ -44,7 +44,7 @@ app.post("/generate", async (req, res) => {
     }
 
     const response = await client.images.generate({
-      model: "gpt-image-3",
+      model: "dall-e-3",
       prompt,
       size,
       quality,
