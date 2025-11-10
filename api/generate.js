@@ -22,7 +22,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
     }
 
-    const { prompt, size = "1024x1024", quality = "standard" } = req.body || {};
+    const { prompt, size = "1024x1024" } = req.body || {};
+    const quality = "low";
 
     if (!prompt || typeof prompt !== "string") {
       return res.status(400).json({ error: "Missing prompt string" });
