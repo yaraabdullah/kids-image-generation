@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     }
 
     const response = await client.images.generate({
-      model: "gpt-image-1",
+      model: "gpt-image-3",
       prompt,
       size,
       quality,

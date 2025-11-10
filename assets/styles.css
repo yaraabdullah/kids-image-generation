@@ -428,7 +428,23 @@ dialog::backdrop {
   font-family: inherit;
 }
 
+#nameForm textarea {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 2px solid rgba(4, 42, 28, 0.15);
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+}
+
 #nameForm input:focus {
+  outline: none;
+  border-color: var(--green-main);
+  box-shadow: 0 0 0 3px rgba(76, 188, 135, 0.2);
+}
+
+#nameForm textarea:focus {
   outline: none;
   border-color: var(--green-main);
   box-shadow: 0 0 0 3px rgba(76, 188, 135, 0.2);

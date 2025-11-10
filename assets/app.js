@@ -27,6 +27,7 @@ const generatedImageEl = document.getElementById("generatedImage");
 const nameDialog = document.getElementById("nameDialog");
 const nameForm = document.getElementById("nameForm");
 const kidNameInput = document.getElementById("kidNameInput");
+const storyInput = document.getElementById("storyInput");
 
 const bookCoverDisplay = document.getElementById("bookCoverDisplay");
 const bookPage = document.getElementById("bookPage");
@@ -101,6 +102,7 @@ function attachEventListeners() {
   buttons.addToBook?.addEventListener("click", () => {
     if (!latestGeneration) return;
     kidNameInput.value = "";
+    storyInput.value = latestGeneration.prompt ?? "";
     nameDialog.showModal();
     setTimeout(() => kidNameInput.focus(), 80);
   });
@@ -114,8 +116,9 @@ function attachEventListeners() {
     }
 
     const kidName = kidNameInput.value.trim();
-    if (!kidName) return;
-    addLatestGenerationToBook(kidName);
+    const story = storyInput.value.trim();
+    if (!kidName || !story) return;
+    addLatestGenerationToBook(kidName, story);
     nameDialog.close();
   });
 
@@ -225,14 +228,16 @@ async function generateImage(prompt) {
   return generateViaPollinations(prompt);
 }
 
-function addLatestGenerationToBook(kidName) {
+function addLatestGenerationToBook(kidName, story) {
   if (!latestGeneration) return;
 
   const entry = {
     id: makeId(),
     kidName,
     prompt: latestGeneration.prompt,
+    story,
     imageUrl: latestGeneration.imageUrl,
+    originalPrompt: latestGeneration.prompt,
     generatedAt: new Date().toISOString().slice(0, 10),
   };
 
@@ -306,7 +311,7 @@ function renderPageContent(pageData) {
 
   pageElements.kidName.textContent = pageData.kidName;
   pageElements.date.textContent = formatDate(pageData.generatedAt);
-  pageElements.prompt.textContent = pageData.prompt;
+  pageElements.prompt.textContent = pageData.story || pageData.prompt || "—";
 }
 
 function formatDate(dateString) {
