@@ -33,16 +33,17 @@ export default async function handler(req, res) {
       prompt,
       size,
       quality,
-      response_format: "b64_json",
     });
 
     const imageBase64 = response?.data?.[0]?.b64_json;
 
-    if (!imageBase64) {
+    const imageUrl = response?.data?.[0]?.url;
+
+    if (!imageBase64 && !imageUrl) {
       return res.status(502).json({ error: "OpenAI response missing image data" });
     }
 
-    return res.status(200).json({ imageBase64 });
+    return res.status(200).json({ imageBase64, imageUrl });
   } catch (error) {
     console.error("Image generation failed:", error);
     const message =
