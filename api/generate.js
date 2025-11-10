@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     }
 
     const { prompt, size = "1024x1024" } = req.body || {};
-    const quality = "low";
+    const quality = "standard";
 
     if (!prompt || typeof prompt !== "string") {
       return res.status(400).json({ error: "Missing prompt string" });
