@@ -449,19 +449,6 @@ menu {
   color: rgba(4, 42, 28, 0.55);
 }
 
-@keyframes flutter {
-  0%,
-  100% {
-    transform: rotateY(10deg) translateZ(0);
-  }
-  45% {
-    transform: rotateY(-6deg) translateZ(6px);
-  }
-  60% {
-    transform: rotateY(4deg) translateZ(2px);
-  }
-}
-
 @media (max-width: 960px) {
   .hero {
     flex-direction: column;
@@ -469,13 +456,6 @@ menu {
     text-align: center;
     padding: 4rem 1.5rem;
     background-attachment: scroll;
-  }
-
-  .hero-flag {
-    position: static;
-    transform: none;
-    margin-bottom: 2rem;
-    justify-content: center;
   }
 
   .hero-content {
@@ -490,14 +470,6 @@ menu {
 @media (max-width: 640px) {
   .hero {
     padding: 3rem 1.2rem;
-  }
-
-  .hero-flagpole {
-    height: clamp(180px, 40vw, 220px);
-  }
-
-  .hero-flag-cloth img {
-    width: clamp(170px, 42vw, 200px);
   }
 
   .cta-buttons {
