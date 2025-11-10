@@ -82,35 +82,64 @@
           </p>
         </div>
         <div class="book-shell">
-          <div class="book-cover">
-            <div class="cover-inner">
-              <h3>Saudi Talent Paint</h3>
-              <p>A collection of bright futures drawn with AI imagination.</p>
-              <div class="cover-decor cover-decor-top"></div>
-              <div class="cover-decor cover-decor-bottom"></div>
-            </div>
-          </div>
           <div class="book-pages">
             <button id="prevPageBtn" class="nav-btn" aria-label="Previous page">‹</button>
             <div class="page-display">
-              <div class="page-number">
-                Page <span id="currentPageIndex">1</span>/<span id="totalPages">1</span>
-              </div>
-              <div class="page-art">
-                <img id="pageImage" alt="Kid generated artwork" loading="lazy" />
-              </div>
-              <div class="page-meta">
-                <div class="kid-name">
-                  Made by <span id="pageKidName">—</span>
+              <div class="book-cover-page" id="bookCoverDisplay">
+                <div class="cover-glow"></div>
+                <div class="cover-content">
+                  <p class="cover-badge">Vision 2030 • Kids Edition</p>
+                  <h3>Saudi Talent Paint</h3>
+                  <p class="cover-tagline">
+                    A celebration of Saudi children's imaginations, brought to life with AI artistry.
+                  </p>
+                  <ul class="cover-points">
+                    <li>Future city dreams</li>
+                    <li>Heritage reimagined</li>
+                    <li>Eco-friendly inventions</li>
+                  </ul>
+                  <div class="cover-footer">
+                    <span>Tap the arrow to open the book</span>
+                  </div>
                 </div>
-                <div class="generated-date">
-                  On <span id="pageDate">—</span>
-                </div>
-                <div class="page-prompt">
-                  <span class="label">Story:</span>
-                  <p id="pagePrompt">—</p>
-                </div>
               </div>
+              <div class="book-spread hidden" id="bookSpread">
+                <article class="book-page left">
+                  <div class="page-art">
+                    <img id="leftPageImage" alt="Left page artwork" loading="lazy" />
+                  </div>
+                  <div class="page-meta">
+                    <div class="kid-name">
+                      Made by <span id="leftPageKidName">—</span>
+                    </div>
+                    <div class="generated-date">
+                      On <span id="leftPageDate">—</span>
+                    </div>
+                    <div class="page-prompt">
+                      <span class="label">Story:</span>
+                      <p id="leftPagePrompt">—</p>
+                    </div>
+                  </div>
+                </article>
+                <article class="book-page right">
+                  <div class="page-art">
+                    <img id="rightPageImage" alt="Right page artwork" loading="lazy" />
+                  </div>
+                  <div class="page-meta">
+                    <div class="kid-name">
+                      Made by <span id="rightPageKidName">—</span>
+                    </div>
+                    <div class="generated-date">
+                      On <span id="rightPageDate">—</span>
+                    </div>
+                    <div class="page-prompt">
+                      <span class="label">Story:</span>
+                      <p id="rightPagePrompt">—</p>
+                    </div>
+                  </div>
+                </article>
+              </div>
+              <div class="page-indicator" id="pageIndicator">Cover</div>
             </div>
             <button id="nextPageBtn" class="nav-btn" aria-label="Next page">›</button>
           </div>

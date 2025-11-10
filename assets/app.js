@@ -28,12 +28,25 @@ const nameDialog = document.getElementById("nameDialog");
 const nameForm = document.getElementById("nameForm");
 const kidNameInput = document.getElementById("kidNameInput");
 
-const pageImage = document.getElementById("pageImage");
-const pageKidName = document.getElementById("pageKidName");
-const pageDate = document.getElementById("pageDate");
-const pagePrompt = document.getElementById("pagePrompt");
-const currentPageIndexEl = document.getElementById("currentPageIndex");
-const totalPagesEl = document.getElementById("totalPages");
+const bookCoverDisplay = document.getElementById("bookCoverDisplay");
+const bookSpread = document.getElementById("bookSpread");
+const pageIndicator = document.getElementById("pageIndicator");
+
+const leftPageElements = {
+  container: document.querySelector(".book-page.left"),
+  image: document.getElementById("leftPageImage"),
+  kidName: document.getElementById("leftPageKidName"),
+  date: document.getElementById("leftPageDate"),
+  prompt: document.getElementById("leftPagePrompt"),
+};
+
+const rightPageElements = {
+  container: document.querySelector(".book-page.right"),
+  image: document.getElementById("rightPageImage"),
+  kidName: document.getElementById("rightPageKidName"),
+  date: document.getElementById("rightPageDate"),
+  prompt: document.getElementById("rightPagePrompt"),
+};
 
 const STORAGE_KEY = "saudi-talent-book";
 
@@ -73,15 +86,14 @@ const starterPages = [
 ];
 
 let bookPages = loadPages();
-let currentPageIndex = 0;
+let currentSpreadIndex = 0;
 let latestGeneration = null;
 
 initialize();
 
 function initialize() {
   attachEventListeners();
-  syncTotalPages();
-  updatePageDisplay();
+  updateBookDisplay();
   hideStatus();
 }
 
@@ -118,16 +130,17 @@ function attachEventListeners() {
   buttons.regenerate?.addEventListener("click", resetGeneration);
 
   buttons.prevPage?.addEventListener("click", () => {
-    if (currentPageIndex > 0) {
-      currentPageIndex -= 1;
-      updatePageDisplay();
+    if (currentSpreadIndex > 0) {
+      currentSpreadIndex -= 1;
+      updateBookDisplay();
     }
   });
 
   buttons.nextPage?.addEventListener("click", () => {
-    if (currentPageIndex < bookPages.length - 1) {
-      currentPageIndex += 1;
-      updatePageDisplay();
+    const total = getTotalSpreads();
+    if (currentSpreadIndex < total - 1) {
+      currentSpreadIndex += 1;
+      updateBookDisplay();
     }
   });
 }
@@ -227,39 +240,79 @@ function addLatestGenerationToBook(kidName) {
   };
 
   bookPages = [...bookPages, entry];
-  currentPageIndex = bookPages.length - 1;
-  syncTotalPages();
-  updatePageDisplay();
+  currentSpreadIndex = getTotalSpreads() - 1;
+  updateBookDisplay();
   savePages();
 
   showView("book");
   highlightNewPage();
 }
 
-function updatePageDisplay() {
-  if (!bookPages.length) {
-    pageImage.src = "";
-    pageKidName.textContent = "—";
-    pageDate.textContent = "—";
-    pagePrompt.textContent = "No pages yet. Create your first masterpiece!";
-    currentPageIndexEl.textContent = "0";
-    totalPagesEl.textContent = "0";
-    buttons.prevPage.disabled = true;
-    buttons.nextPage.disabled = true;
+function updateBookDisplay() {
+  const totalSpreads = getTotalSpreads();
+  const hasEntries = Array.isArray(bookPages) && bookPages.length > 0;
+
+  buttons.prevPage.disabled = currentSpreadIndex === 0;
+  buttons.nextPage.disabled = currentSpreadIndex >= totalSpreads - 1;
+
+  if (!hasEntries || currentSpreadIndex === 0) {
+    showCover();
     return;
   }
 
-  const currentPage = bookPages[currentPageIndex];
-  pageImage.src = currentPage.imageUrl;
-  pageImage.alt = currentPage.prompt;
-  pageKidName.textContent = currentPage.kidName;
-  pageDate.textContent = formatDate(currentPage.generatedAt);
-  pagePrompt.textContent = currentPage.prompt;
-  currentPageIndexEl.textContent = currentPageIndex + 1;
-  totalPagesEl.textContent = bookPages.length;
+  showSpread();
 
-  buttons.prevPage.disabled = currentPageIndex === 0;
-  buttons.nextPage.disabled = currentPageIndex === bookPages.length - 1;
+  const leftIndex = (currentSpreadIndex - 1) * 2;
+  const rightIndex = leftIndex + 1;
+
+  renderPage(leftPageElements, bookPages[leftIndex]);
+  renderPage(rightPageElements, bookPages[rightIndex]);
+
+  pageIndicator.textContent = `Spread ${currentSpreadIndex} of ${Math.max(
+    totalSpreads - 1,
+    1
+  )}`;
+}
+
+function showCover() {
+  bookCoverDisplay?.classList.remove("hidden");
+  bookSpread?.classList.add("hidden");
+  pageIndicator.textContent = "Cover";
+
+  renderPage(leftPageElements, null);
+  renderPage(rightPageElements, null);
+}
+
+function showSpread() {
+  bookCoverDisplay?.classList.add("hidden");
+  bookSpread?.classList.remove("hidden");
+}
+
+function renderPage(sideElements, pageData) {
+  if (!sideElements?.container) return;
+
+  const isEmpty = !pageData;
+  sideElements.container.classList.toggle("empty", isEmpty);
+
+  if (isEmpty) {
+    if (sideElements.image) {
+      sideElements.image.src = "";
+      sideElements.image.alt = "";
+    }
+    sideElements.kidName.textContent = "—";
+    sideElements.date.textContent = "—";
+    sideElements.prompt.textContent = "Add a new masterpiece to fill this page.";
+    return;
+  }
+
+  if (sideElements.image) {
+    sideElements.image.src = pageData.imageUrl;
+    sideElements.image.alt = pageData.prompt;
+  }
+
+  sideElements.kidName.textContent = pageData.kidName;
+  sideElements.date.textContent = formatDate(pageData.generatedAt);
+  sideElements.prompt.textContent = pageData.prompt;
 }
 
 function formatDate(dateString) {
@@ -275,8 +328,9 @@ function formatDate(dateString) {
   }
 }
 
-function syncTotalPages() {
-  totalPagesEl.textContent = bookPages.length;
+function getTotalSpreads() {
+  if (!Array.isArray(bookPages)) return 1;
+  return 1 + Math.ceil(bookPages.length / 2);
 }
 
 function showStatus(message, isError = false, stayVisible = false) {
@@ -308,11 +362,11 @@ function resetGeneration() {
 }
 
 function highlightNewPage() {
-  const pageDisplay = document.querySelector(".page-display");
-  if (!pageDisplay) return;
-  pageDisplay.classList.add("recently-added");
+  const spreadDisplay = document.querySelector(".page-display");
+  if (!spreadDisplay) return;
+  spreadDisplay.classList.add("recently-added");
   setTimeout(() => {
-    pageDisplay.classList.remove("recently-added");
+    spreadDisplay.classList.remove("recently-added");
   }, 2800);
 }
 

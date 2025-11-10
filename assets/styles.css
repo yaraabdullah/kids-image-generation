@@ -325,66 +325,8 @@ main:has(.view:not(.hidden)) {
 }
 
 .book-shell {
-  display: grid;
-  gap: clamp(1rem, 3vw, 2.5rem);
-  grid-template-columns: minmax(240px, 1fr) 2fr;
-  align-items: stretch;
-}
-
-.book-cover {
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-main) 60%);
-  border-radius: 24px;
-  padding: 0.5rem;
-  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.2), 0 24px 40px rgba(4, 22, 34, 0.25);
-  position: relative;
-}
-
-.cover-inner {
-  height: 100%;
-  border-radius: 20px;
-  background: repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.05) 12px,
-      transparent 12px,
-      transparent 24px
-    ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.05));
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  color: #fefbf6;
-  position: relative;
-  overflow: hidden;
-}
-
-.cover-inner h3 {
-  color: #fff;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.cover-decor {
-  position: absolute;
-  width: 120%;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.25);
-  left: -10%;
-  border-radius: 12px;
-}
-
-.cover-decor-top {
-  top: 18%;
-  transform: rotate(-2deg);
-}
-
-.cover-decor-bottom {
-  bottom: 16%;
-  transform: rotate(3deg);
 }
 
 .book-pages {
@@ -419,13 +361,12 @@ main:has(.view:not(.hidden)) {
 }
 
 .page-display {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.75));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.78));
   border-radius: 18px;
-  padding: clamp(1rem, 3vw, 2rem);
+  padding: clamp(1rem, 3vw, 2.5rem);
   box-shadow: inset 0 0 0 1px rgba(4, 42, 28, 0.08), 0 14px 32px rgba(4, 22, 34, 0.12);
   display: grid;
-  gap: 1.25rem;
-  justify-items: center;
+  gap: clamp(1rem, 2.5vw, 2rem);
   position: relative;
 }
 
@@ -448,8 +389,143 @@ main:has(.view:not(.hidden)) {
   }
 }
 
-.page-number {
+.page-indicator {
+  text-align: center;
   font-weight: 600;
+  color: var(--green-dark);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.book-cover-page {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: clamp(2rem, 4vw, 3rem);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(6, 77, 49, 0.95), rgba(12, 44, 77, 0.85)),
+    url("./images/riyadh-home-bg.png") center / cover;
+  color: #fefbf6;
+  min-height: clamp(380px, 55vh, 520px);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+
+.book-cover-page .cover-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+}
+
+.cover-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 50%),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.12), transparent 55%);
+  opacity: 0.8;
+}
+
+.cover-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+}
+
+.book-cover-page h3 {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.5rem;
+}
+
+.cover-tagline {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  max-width: 26ch;
+  margin: 0 auto;
+}
+
+.cover-points {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+.cover-points li {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0.45rem 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.cover-footer {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.book-spread {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+}
+
+.book-spread.hidden {
+  display: none;
+}
+
+.book-page {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82));
+  border-radius: 16px;
+  padding: clamp(1rem, 2.5vw, 2rem);
+  box-shadow: inset 0 0 0 1px rgba(4, 42, 28, 0.08), 0 12px 24px rgba(4, 22, 34, 0.12);
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.book-page.empty {
+  background: repeating-linear-gradient(
+      120deg,
+      rgba(4, 42, 28, 0.05),
+      rgba(4, 42, 28, 0.05) 12px,
+      rgba(255, 255, 255, 0.6) 12px,
+      rgba(255, 255, 255, 0.6) 24px
+    );
+  color: rgba(4, 42, 28, 0.6);
+  text-align: center;
+  align-items: center;
+  justify-items: center;
+}
+
+.book-page.empty .page-art {
+  display: none;
+}
+
+.book-page.empty .page-meta {
+  gap: 0.75rem;
+}
+
+.book-page.empty .page-meta::before {
+  content: "Empty page";
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--green-dark);
 }
 
@@ -590,12 +666,12 @@ menu {
     margin: 0 auto;
   }
 
-  .book-shell {
+  .book-spread {
     grid-template-columns: 1fr;
   }
 
-  .book-cover {
-    min-height: 280px;
+  .book-cover-page {
+    min-height: 360px;
   }
 }
 
