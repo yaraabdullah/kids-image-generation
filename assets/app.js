@@ -296,7 +296,7 @@ async function handleGenerate(event) {
   const styledPrompt = composePrompt(prompt);
 
   toggleFormDisabled(true);
-  showStatus(t("status.generating"), false);
+  showStatus(t("status.generating"), false, true);
   resultSection.classList.add("hidden");
   resultSection.classList.add("loading");
   resultSection.setAttribute("data-loading-label", t("status.generatingShort"));
