@@ -34,6 +34,7 @@ export default async function handler(req, res) {
       prompt,
       size,
       quality,
+      response_format: "b64_json",
     });
 
     const imageBase64 = response?.data?.[0]?.b64_json ?? null;
