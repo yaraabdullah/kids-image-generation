@@ -81,6 +81,7 @@ const translations = {
     "dialog.add": "Add to book",
     "footer.tagline": "Crafted for young Saudi dreamers • Empowering creativity with responsible AI",
     "status.generating": "Painting your story in the sky... ✨",
+    "status.generatingShort": "Thinking...",
     "status.success": "Here is your future vision! Add it to the book when you're ready.",
     "status.error": "We couldn't reach our art studio. Please try again in a few moments.",
     "status.missingPrompt": "Please describe your futuristic idea before we can paint it.",
@@ -121,6 +122,7 @@ const translations = {
     "dialog.add": "إضافة إلى الكتاب",
     "footer.tagline": "صُنِع من أجل حالمين سعوديين صغار • نُطلق الإبداع بالذكاء الاصطناعي المسؤول",
     "status.generating": "نرسم قصتك في السماء... ✨",
+    "status.generatingShort": "جارٍ الإبداع...",
     "status.success": "هذه رؤيتك المستقبلية! أضفها إلى الكتاب عندما تكون جاهزاً.",
     "status.error": "تعذر الوصول إلى ورشة الفن. حاول مرة أخرى بعد قليل.",
     "status.missingPrompt": "يرجى وصف فكرتك المستقبلية قبل أن نرسمها.",
@@ -296,6 +298,8 @@ async function handleGenerate(event) {
   toggleFormDisabled(true);
   showStatus(t("status.generating"), false);
   resultSection.classList.add("hidden");
+  resultSection.classList.add("loading");
+  resultSection.setAttribute("data-loading-label", t("status.generatingShort"));
 
   try {
     const imageUrl = await generateImage(styledPrompt);
@@ -308,11 +312,13 @@ async function handleGenerate(event) {
     generatedImageEl.alt = styledPrompt;
     resultSection.classList.remove("hidden");
     showStatus(t("status.success"), false, true);
+    resultSection.setAttribute("data-loading-label", "");
   } catch (error) {
     console.error(error);
     showStatus(t("status.error"), true);
   } finally {
     toggleFormDisabled(false);
+    resultSection.classList.remove("loading");
   }
 }
 
@@ -470,6 +476,8 @@ function resetGeneration() {
   promptInput.focus();
   latestGeneration = null;
   resultSection.classList.add("hidden");
+  resultSection.setAttribute("data-loading-label", "");
+  resultSection.classList.remove("loading");
   hideStatus();
 }
 

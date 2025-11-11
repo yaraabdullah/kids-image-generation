@@ -280,6 +280,24 @@ main:has(.view:not(.hidden)) {
   border: 6px solid rgba(255, 255, 255, 0.85);
 }
 
+.generated-result.loading {
+  position: relative;
+}
+
+.generated-result.loading::after {
+  content: attr(data-loading-label);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--green-dark);
+  letter-spacing: 0.08em;
+}
+
 .result-actions {
   display: flex;
   flex-wrap: wrap;
