@@ -36,15 +36,16 @@ export default async function handler(req, res) {
       quality,
     });
 
-    const imageBase64 = response?.data?.[0]?.b64_json;
-
-    const imageUrl = response?.data?.[0]?.url;
+    const imageBase64 = response?.data?.[0]?.b64_json ?? null;
+    const imageUrl = response?.data?.[0]?.url ?? null;
 
     if (!imageBase64 && !imageUrl) {
       return res.status(502).json({ error: "OpenAI response missing image data" });
     }
 
-    return res.status(200).json({ imageBase64, imageUrl });
+    const finalUrl = imageUrl || `data:image/png;base64,${imageBase64}`;
+
+    return res.status(200).json({ imageUrl: finalUrl });
   } catch (error) {
     console.error("Image generation failed:", error);
     const message =
