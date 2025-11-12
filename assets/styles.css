@@ -317,7 +317,9 @@ main:has(.view:not(.hidden)) {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
+  justify-items: center;
   gap: 1rem;
+  width: 100%;
 }
 
 .nav-btn {
@@ -343,9 +345,11 @@ main:has(.view:not(.hidden)) {
 .page-display {
   position: relative;
   width: clamp(280px, 70vw, 620px);
+  max-width: 100%;
   display: grid;
   gap: 1rem;
   justify-items: center;
+  margin: 0 auto;
 }
 
 .page-indicator {
@@ -581,42 +585,65 @@ menu {
   }
 
   .view {
-    padding: clamp(1rem, 3vw, 2rem);
+    padding: clamp(1rem, 3vw, 2rem) clamp(0.75rem, 2vw, 1rem);
     overflow: visible;
+  }
+
+  main:has(.view:not(.hidden)) {
+    padding: 1rem 0.5rem 2rem;
+    overflow-x: visible;
   }
 
   .book-shell {
     width: 100%;
     overflow: visible;
+    padding: 0;
   }
 
   .book-pages {
     grid-template-columns: auto 1fr auto;
-    gap: 0.25rem;
+    gap: 0.5rem;
     width: 100%;
     max-width: 100%;
     padding: 0;
-    margin: 0;
+    margin: 0 auto;
     overflow: visible;
+    align-items: center;
   }
 
   .nav-btn {
-    font-size: 1.8rem;
+    font-size: 2rem;
     padding: 0.5rem;
     flex-shrink: 0;
     z-index: 10;
     min-width: 2.5rem;
-    display: flex;
+    width: auto;
+    height: auto;
+    display: flex !important;
     align-items: center;
     justify-content: center;
+    position: relative;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .page-display {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .book-cover-page,
   .book-page {
-    width: clamp(240px, 75vw, 400px);
+    width: clamp(220px, 70vw, 380px);
     aspect-ratio: 3 / 4;
     max-height: 70vh;
     overflow: hidden;
+    margin: 0 auto;
   }
 
   .book-cover-page {
@@ -645,6 +672,7 @@ menu {
   .page-display {
     width: 100%;
     max-width: 100%;
+    margin: 0 auto;
   }
 
   .book-page {
