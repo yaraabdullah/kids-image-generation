@@ -360,7 +360,7 @@ main:has(.view:not(.hidden)) {
   width: clamp(240px, 70vw, 520px);
   aspect-ratio: 3 / 4;
   border-radius: 18px;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -568,17 +568,53 @@ menu {
   }
 
   .book-pages {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 100vw;
+    padding: 0 0.5rem;
+  }
+
+  .nav-btn {
+    font-size: 1.8rem;
+    padding: 0.5rem;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .book-cover-page,
+  .book-page {
+    width: clamp(280px, 85vw, 480px);
+    aspect-ratio: auto;
+    min-height: auto;
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .book-cover-page {
-    min-height: 300px;
     padding: 1.2rem;
+    overflow: hidden;
   }
 
   .book-cover-page img {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .page-art {
+    width: 100%;
     max-width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+  }
+
+  .page-art img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .page-display {
