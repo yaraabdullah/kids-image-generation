@@ -436,6 +436,9 @@ main:has(.view:not(.hidden)) {
   justify-items: center;
   text-align: center;
   width: 100%;
+  position: relative;
+  z-index: 2;
+  margin-top: 0;
 }
 
 .kid-name {
@@ -663,10 +666,12 @@ menu {
     width: 100%;
     max-width: 100%;
     aspect-ratio: 4 / 3;
-    overflow: visible;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
   }
 
   .page-art img {
@@ -676,6 +681,12 @@ menu {
     max-height: 100%;
     object-fit: contain;
     display: block;
+  }
+
+  .page-meta {
+    position: relative;
+    z-index: 2;
+    margin-top: 0.75rem;
   }
 
   .page-display {

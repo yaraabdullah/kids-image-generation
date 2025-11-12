@@ -226,14 +226,20 @@ function attachEventListeners() {
 
   buttons.regenerate?.addEventListener("click", resetGeneration);
 
-  buttons.prevPage?.addEventListener("click", () => {
+  buttons.prevPage?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (buttons.prevPage?.disabled) return;
     if (currentPageIndex > 0) {
       currentPageIndex -= 1;
       updateBookDisplay();
     }
   });
 
-  buttons.nextPage?.addEventListener("click", () => {
+  buttons.nextPage?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (buttons.nextPage?.disabled) return;
     const total = getTotalPages();
     if (currentPageIndex < total - 1) {
       const targetIndex = currentPageIndex + 1;
@@ -368,8 +374,12 @@ function updateBookDisplay() {
   const hasEntries = Array.isArray(bookPages) && bookPages.length > 0;
   const onCover = currentPageIndex === 0 || !hasEntries;
 
-  buttons.prevPage.disabled = currentPageIndex === 0;
-  buttons.nextPage.disabled = currentPageIndex >= totalPages - 1;
+  if (buttons.prevPage) {
+    buttons.prevPage.disabled = currentPageIndex === 0;
+  }
+  if (buttons.nextPage) {
+    buttons.nextPage.disabled = currentPageIndex >= totalPages - 1;
+  }
 
   if (!hasEntries) {
     showCover();
