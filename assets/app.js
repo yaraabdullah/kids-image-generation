@@ -354,8 +354,8 @@ async function addLatestGenerationToBook(kidName, story) {
     await fetchBookPages();
     currentPageIndex = getTotalPages() - 1;
     updateBookDisplay();
-    showView("book");
-    highlightNewPage();
+  showView("book");
+  highlightNewPage();
   } catch (error) {
     console.error("Unable to save artwork to Supabase", error);
     showStatus(t("status.saveError"), true, true);
