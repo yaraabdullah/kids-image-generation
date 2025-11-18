@@ -324,8 +324,8 @@ async function fetchBookPages() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
     
-    // Explicitly set limit to 50 to prevent timeouts
-    const response = await fetch(`/api/artwork?limit=50&t=${Date.now()}`, {
+    // Explicitly set limit to 25 to prevent timeouts
+    const response = await fetch(`/api/artwork?limit=25&t=${Date.now()}`, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache'
@@ -453,11 +453,41 @@ async function addLatestGenerationToBook(kidName, story) {
       throw new Error(errorMessage || "Failed to save artwork");
     }
 
-    await fetchBookPages();
+    // Get the saved entry from the response
+    const savedEntry = await response.json();
+    
+    // Add the new entry to bookPages immediately without refetching all pages
+    if (savedEntry && savedEntry.id) {
+      const normalizedEntry = normalizeEntry(savedEntry);
+      if (normalizedEntry) {
+        // Check if entry already exists (avoid duplicates)
+        const existsIndex = bookPages.findIndex(p => p.id === normalizedEntry.id);
+        if (existsIndex >= 0) {
+          // Update existing entry
+          bookPages[existsIndex] = normalizedEntry;
+        } else {
+          // Add new entry
+          bookPages.push(normalizedEntry);
+        }
+        // Sort by created_at to maintain chronological order
+        bookPages.sort((a, b) => {
+          const dateA = new Date(a.generatedAt || 0);
+          const dateB = new Date(b.generatedAt || 0);
+          return dateA - dateB;
+        });
+      }
+    }
+    
+    // Try to refresh in background, but don't block on it
+    // This ensures we have the latest data, but doesn't prevent the save from completing
+    fetchBookPages().catch(err => {
+      console.warn("Background refresh failed, using cached data:", err);
+    });
+    
     currentPageIndex = getTotalPages() - 1;
     updateBookDisplay();
-  showView("book");
-  highlightNewPage();
+    showView("book");
+    highlightNewPage();
   } catch (error) {
     console.error("Unable to save artwork to Supabase", error);
     showStatus(t("status.saveError"), true, true);
