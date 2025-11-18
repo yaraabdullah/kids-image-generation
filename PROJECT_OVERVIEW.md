@@ -139,7 +139,7 @@ This is a **full-stack web application** with:
 ## 🔧 Technologies & Frameworks
 
 ### **Frontend**
-- **No Framework**: Pure vanilla JavaScript (ES6 modules)
+- **No Framework**: Pure vanilla JavaScript (ES6 modules) 
 - **HTML5**: Semantic markup
 - **CSS3**: Modern CSS with custom properties, flexbox, grid
 - **Fonts**: Google Fonts (Baloo 2, Signika)

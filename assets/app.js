@@ -264,25 +264,46 @@ function showView(view) {
   }
 
   if (view === "book") {
+    // Refresh book pages when opening book view to ensure fresh data
+    fetchBookPages().then(() => {
+      updateBookDisplay();
+    });
     scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 
 async function fetchBookPages() {
   try {
-    const response = await fetch("/api/artwork");
+    // Add cache-busting to ensure fresh data
+    const response = await fetch(`/api/artwork?t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
     if (!response.ok) {
       throw new Error(`Failed to load artwork: ${response.status}`);
     }
     const data = await response.json();
-    const entries =
-      Array.isArray(data) && data.length
-        ? data.map(normalizeEntry).filter(Boolean)
-        : fallbackPages.map((entry) => ({ ...entry }));
-    bookPages = entries;
+    // Only use fallback if we get an empty array - don't use fallback if we have real data
+    if (Array.isArray(data) && data.length > 0) {
+      const entries = data.map(normalizeEntry).filter(Boolean);
+      if (entries.length > 0) {
+        bookPages = entries;
+      } else {
+        // If normalization filtered everything out, keep existing pages or use empty array
+        console.warn("All entries were filtered out during normalization");
+        bookPages = [];
+      }
+    } else {
+      // Empty array from database - use empty array, not fallback
+      console.log("No artwork found in database");
+      bookPages = [];
+    }
   } catch (error) {
     console.error("Unable to load book pages from Supabase", error);
-    bookPages = fallbackPages.map((entry) => ({ ...entry }));
+    // Only use fallback on actual errors, not empty results
+    bookPages = [];
   }
 
   if (!Number.isInteger(currentPageIndex) || currentPageIndex < 0) {
@@ -392,7 +413,13 @@ function updateBookDisplay() {
   }
 
   showBookPage();
-  renderEntryForIndex(currentPageIndex);
+  const entryIndex = currentPageIndex - 1;
+  const pageData = bookPages[entryIndex];
+  if (pageData) {
+    renderPageContent(pageData);
+  } else {
+    renderPageContent(null);
+  }
 
   const indicatorTemplate = t("book.pageIndicator");
   const renderedIndicator = indicatorTemplate
@@ -433,7 +460,13 @@ function renderPageContent(pageData) {
   }
 
   if (pageElements.image) {
-    pageElements.image.src = pageData.imageUrl;
+    // Add cache-busting to image URL to prevent showing old cached images
+    let imageUrl = pageData.imageUrl;
+    if (imageUrl && !imageUrl.includes('cacheBust=') && !imageUrl.startsWith('data:')) {
+      const separator = imageUrl.includes('?') ? '&' : '?';
+      imageUrl = `${imageUrl}${separator}cacheBust=${Date.now()}`;
+    }
+    pageElements.image.src = imageUrl;
     pageElements.image.alt = pageData.prompt;
     pageElements.image.classList.remove("hidden");
   }
@@ -602,7 +635,8 @@ function normalizeEntry(entry) {
 function renderEntryForIndex(pageIndex) {
   if (pageIndex <= 0) return;
   const entryIndex = pageIndex - 1;
-  renderPageContent(bookPages[entryIndex] ?? null);
+  const pageData = bookPages[entryIndex];
+  renderPageContent(pageData ?? null);
 }
 
 function playCoverOpeningAnimation(targetIndex) {
