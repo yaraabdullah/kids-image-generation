@@ -38,11 +38,13 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       // Parse query parameters for pagination
-      // Default limit set to 500 to prevent timeouts with large base64 image URLs
-      const limit = Math.min(parseInt(req.query.limit) || 500, 1000); // Max 1000, default 500
+      // Reduced limit to 100 to prevent timeouts with large base64 image URLs
+      // Base64 images can be 100KB+ each, so fetching too many causes timeouts
+      const limit = Math.min(parseInt(req.query.limit) || 100, 200); // Max 200, default 100
       const offset = parseInt(req.query.offset) || 0;
       
       // Build query with limit to prevent timeout
+      // Order by created_at ascending (oldest first) for book display
       let query = supabase
         .from("kid_artwork")
         .select("id, kid_name, story, prompt, image_url, created_at")

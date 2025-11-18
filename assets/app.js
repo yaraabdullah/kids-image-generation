@@ -290,17 +290,26 @@ function showView(view) {
   }
 
   if (view === "book") {
-    // Refresh book pages when opening book view to ensure fresh data
+    // Show the view immediately and update display with current data
+    updateBookDisplay();
+    scrollTo({ top: 0, behavior: "smooth" });
+    
+    // Then refresh book pages in the background
     // Don't reset currentPageIndex if user is already viewing a page
     const wasOnCover = currentPageIndex === 0;
-    fetchBookPages().then(() => {
-      // If user was on cover, keep them on cover; otherwise preserve their position
-      if (wasOnCover && bookPages.length > 0) {
-        currentPageIndex = 0;
-      }
-      updateBookDisplay();
-    });
-    scrollTo({ top: 0, behavior: "smooth" });
+    fetchBookPages()
+      .then(() => {
+        // If user was on cover, keep them on cover; otherwise preserve their position
+        if (wasOnCover && bookPages.length > 0) {
+          currentPageIndex = 0;
+        }
+        updateBookDisplay();
+      })
+      .catch((error) => {
+        // Even if fetch fails, update display with existing/empty pages
+        console.error("Error fetching book pages:", error);
+        updateBookDisplay();
+      });
   }
 }
 
@@ -311,12 +320,19 @@ async function fetchBookPages() {
   
   try {
     // Add cache-busting to ensure fresh data
+    // Add timeout to prevent hanging (30 seconds)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
     const response = await fetch(`/api/artwork?t=${Date.now()}`, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache'
-      }
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     if (!response.ok) {
       // Check for timeout errors
       if (response.status === 504) {
@@ -347,9 +363,15 @@ async function fetchBookPages() {
     bookPages = previousPages.length > 0 ? previousPages : [];
     
     // Show user-friendly error message for timeouts
-    if (error.message && error.message.includes('timeout')) {
-      showStatus(error.message, true, true);
+    if (error.name === 'AbortError' || error.message?.includes('timeout') || error.message?.includes('504')) {
+      showStatus('Request timed out. Showing available pages. Please try again later.', true, true);
+    } else if (error.message) {
+      // Show other errors too, but less prominently
+      console.warn("Fetch error details:", error.message);
     }
+    
+    // Re-throw to allow caller to handle
+    throw error;
   }
 
   // Only adjust currentPageIndex if necessary, don't reset it unnecessarily
