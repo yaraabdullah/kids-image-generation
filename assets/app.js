@@ -183,6 +183,12 @@ initialize();
 async function initialize() {
   setupLanguage();
   attachEventListeners();
+  
+  // Verify buttons exist
+  if (!buttons.prevPage || !buttons.nextPage) {
+    console.error("Navigation buttons not found in DOM");
+  }
+  
   await fetchBookPages();
   updateBookDisplay();
   hideStatus();
@@ -229,26 +235,46 @@ function attachEventListeners() {
   buttons.prevPage?.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (buttons.prevPage?.disabled) return;
-    if (currentPageIndex > 0) {
+    console.log("Prev button clicked, currentIndex:", currentPageIndex, "disabled:", buttons.prevPage?.disabled);
+    // Check if button is disabled
+    if (buttons.prevPage?.disabled) {
+      console.log("Prev button is disabled, ignoring click");
+      return;
+    }
+    // Ensure we have valid page data before navigating
+    if (Array.isArray(bookPages) && currentPageIndex > 0) {
       currentPageIndex -= 1;
+      console.log("Navigating to page:", currentPageIndex);
       updateBookDisplay();
+    } else {
+      console.log("Cannot navigate: bookPages:", bookPages, "currentPageIndex:", currentPageIndex);
     }
   });
 
   buttons.nextPage?.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (buttons.nextPage?.disabled) return;
+    console.log("Next button clicked, currentIndex:", currentPageIndex, "disabled:", buttons.nextPage?.disabled);
+    // Check if button is disabled
+    if (buttons.nextPage?.disabled) {
+      console.log("Next button is disabled, ignoring click");
+      return;
+    }
+    // Ensure we have valid page data before navigating
     const total = getTotalPages();
+    console.log("Total pages:", total, "bookPages length:", bookPages.length);
     if (currentPageIndex < total - 1) {
       const targetIndex = currentPageIndex + 1;
       if (currentPageIndex === 0) {
+        console.log("Opening cover, navigating to page:", targetIndex);
         playCoverOpeningAnimation(targetIndex);
       } else {
         currentPageIndex = targetIndex;
+        console.log("Navigating to page:", currentPageIndex);
         updateBookDisplay();
       }
+    } else {
+      console.log("Cannot navigate: already at last page");
     }
   });
 }
@@ -265,7 +291,13 @@ function showView(view) {
 
   if (view === "book") {
     // Refresh book pages when opening book view to ensure fresh data
+    // Don't reset currentPageIndex if user is already viewing a page
+    const wasOnCover = currentPageIndex === 0;
     fetchBookPages().then(() => {
+      // If user was on cover, keep them on cover; otherwise preserve their position
+      if (wasOnCover && bookPages.length > 0) {
+        currentPageIndex = 0;
+      }
       updateBookDisplay();
     });
     scrollTo({ top: 0, behavior: "smooth" });
@@ -273,6 +305,10 @@ function showView(view) {
 }
 
 async function fetchBookPages() {
+  // Store current state to preserve it if fetch fails
+  const previousPages = [...bookPages];
+  const previousIndex = currentPageIndex;
+  
   try {
     // Add cache-busting to ensure fresh data
     const response = await fetch(`/api/artwork?t=${Date.now()}`, {
@@ -291,25 +327,31 @@ async function fetchBookPages() {
       if (entries.length > 0) {
         bookPages = entries;
       } else {
-        // If normalization filtered everything out, keep existing pages or use empty array
+        // If normalization filtered everything out, keep existing pages
         console.warn("All entries were filtered out during normalization");
-        bookPages = [];
+        bookPages = previousPages.length > 0 ? previousPages : [];
       }
     } else {
-      // Empty array from database - use empty array, not fallback
+      // Empty array from database - keep previous pages if available
       console.log("No artwork found in database");
-      bookPages = [];
+      bookPages = previousPages.length > 0 ? previousPages : [];
     }
   } catch (error) {
     console.error("Unable to load book pages from Supabase", error);
-    // Only use fallback on actual errors, not empty results
-    bookPages = [];
+    // On error, keep previous pages so buttons still work
+    bookPages = previousPages.length > 0 ? previousPages : [];
   }
 
+  // Only adjust currentPageIndex if necessary, don't reset it unnecessarily
   if (!Number.isInteger(currentPageIndex) || currentPageIndex < 0) {
     currentPageIndex = 0;
+  } else {
+    // Ensure index is within bounds but don't reset if it was valid
+    const maxIndex = Math.max(0, getTotalPages() - 1);
+    if (currentPageIndex > maxIndex) {
+      currentPageIndex = maxIndex;
+    }
   }
-  currentPageIndex = Math.min(currentPageIndex, Math.max(0, getTotalPages() - 1));
 }
 
 async function handleGenerate(event) {
@@ -395,11 +437,20 @@ function updateBookDisplay() {
   const hasEntries = Array.isArray(bookPages) && bookPages.length > 0;
   const onCover = currentPageIndex === 0 || !hasEntries;
 
+  // Update button states - ensure buttons are enabled/disabled correctly
   if (buttons.prevPage) {
     buttons.prevPage.disabled = currentPageIndex === 0;
+    // Remove disabled attribute if not disabled to ensure clickability
+    if (!buttons.prevPage.disabled) {
+      buttons.prevPage.removeAttribute('disabled');
+    }
   }
   if (buttons.nextPage) {
     buttons.nextPage.disabled = currentPageIndex >= totalPages - 1;
+    // Remove disabled attribute if not disabled to ensure clickability
+    if (!buttons.nextPage.disabled) {
+      buttons.nextPage.removeAttribute('disabled');
+    }
   }
 
   if (!hasEntries) {
