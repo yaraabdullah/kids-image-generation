@@ -318,6 +318,11 @@ async function fetchBookPages() {
       }
     });
     if (!response.ok) {
+      // Check for timeout errors
+      if (response.status === 504) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Request timeout. The database query took too long. Please try again later.');
+      }
       throw new Error(`Failed to load artwork: ${response.status}`);
     }
     const data = await response.json();
@@ -340,6 +345,11 @@ async function fetchBookPages() {
     console.error("Unable to load book pages from Supabase", error);
     // On error, keep previous pages so buttons still work
     bookPages = previousPages.length > 0 ? previousPages : [];
+    
+    // Show user-friendly error message for timeouts
+    if (error.message && error.message.includes('timeout')) {
+      showStatus(error.message, true, true);
+    }
   }
 
   // Only adjust currentPageIndex if necessary, don't reset it unnecessarily

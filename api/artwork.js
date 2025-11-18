@@ -37,13 +37,28 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     try {
-      const { data, error } = await supabase
+      // Parse query parameters for pagination
+      // Default limit set to 500 to prevent timeouts with large base64 image URLs
+      const limit = Math.min(parseInt(req.query.limit) || 500, 1000); // Max 1000, default 500
+      const offset = parseInt(req.query.offset) || 0;
+      
+      // Build query with limit to prevent timeout
+      let query = supabase
         .from("kid_artwork")
         .select("id, kid_name, story, prompt, image_url, created_at")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .range(offset, offset + limit - 1);
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Supabase fetch error:", error);
+        // Check if it's a timeout error
+        if (error.code === '57014' || error.message?.includes('timeout')) {
+          return res.status(504).json({ 
+            error: "Request timeout. The database query took too long. Try reducing the limit or contact support." 
+          });
+        }
         return res.status(500).json({ error: "Failed to load kid artwork records." });
       }
 
