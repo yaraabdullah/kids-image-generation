@@ -324,7 +324,8 @@ async function fetchBookPages() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
     
-    const response = await fetch(`/api/artwork?t=${Date.now()}`, {
+    // Explicitly set limit to 50 to prevent timeouts
+    const response = await fetch(`/api/artwork?limit=50&t=${Date.now()}`, {
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache'
