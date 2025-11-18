@@ -38,19 +38,25 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       // Parse query parameters for pagination
-      // Aggressively reduced limit to 25 to prevent timeouts with large base64 image URLs
+      // Drastically reduced limit to 10 to prevent timeouts with large base64 image URLs
       // Base64 images can be 100KB+ each, so fetching too many causes timeouts
-      // If you have more than 25 records, implement pagination on the frontend
-      const limit = Math.min(parseInt(req.query.limit) || 25, 50); // Max 50, default 25
+      // If you have more than 10 records, implement pagination on the frontend
+      const limit = Math.min(parseInt(req.query.limit) || 10, 25); // Max 25, default 10
       const offset = parseInt(req.query.offset) || 0;
       
+      // Option to exclude image_url to reduce payload size (for faster initial load)
+      const includeImages = req.query.includeImages !== 'false';
+      const selectFields = includeImages 
+        ? "id, kid_name, story, prompt, image_url, created_at"
+        : "id, kid_name, story, prompt, created_at";
+      
       // Build query with limit to prevent timeout
-      // Order by created_at ascending (oldest first) for book display
-      // Limit set to 25 to prevent timeouts with large base64 image URLs
+      // Order by created_at descending to get newest first (more efficient with index)
+      // Then we'll reverse it to show oldest first
       let query = supabase
         .from("kid_artwork")
-        .select("id, kid_name, story, prompt, image_url, created_at")
-        .order("created_at", { ascending: true })
+        .select(selectFields)
+        .order("created_at", { ascending: false }) // Get newest first
         .range(offset, offset + limit - 1);
 
       const { data, error } = await query;
@@ -66,7 +72,9 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Failed to load kid artwork records." });
       }
 
-      const entries = (data ?? []).map(normalizeEntry).filter(Boolean);
+      // Reverse to get ascending order (oldest first) for book display
+      const reversedData = (data ?? []).reverse();
+      const entries = reversedData.map(normalizeEntry).filter(Boolean);
       return res.status(200).json(entries);
     } catch (error) {
       console.error("Unexpected fetch error:", error);

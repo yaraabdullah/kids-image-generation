@@ -320,27 +320,73 @@ async function fetchBookPages() {
   
   try {
     // Add cache-busting to ensure fresh data
-    // Add timeout to prevent hanging (30 seconds)
+    // Add timeout to prevent hanging (20 seconds - reduced for faster failure)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     
-    // Explicitly set limit to 25 to prevent timeouts
-    const response = await fetch(`/api/artwork?limit=25&t=${Date.now()}`, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache'
-      },
-      signal: controller.signal
-    });
+    // Explicitly set limit to 10 to prevent timeouts
+    let response;
+    try {
+      response = await fetch(`/api/artwork?limit=10&t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      // If fetch fails or times out, try without images as fallback
+      if (fetchError.name === 'AbortError' || fetchError.message?.includes('timeout')) {
+        console.warn("Initial fetch timed out, trying without images...");
+        const fallbackController = new AbortController();
+        const fallbackTimeout = setTimeout(() => fallbackController.abort(), 15000);
+        try {
+          response = await fetch(`/api/artwork?limit=10&includeImages=false&t=${Date.now()}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            },
+            signal: fallbackController.signal
+          });
+          clearTimeout(fallbackTimeout);
+        } catch (fallbackError) {
+          clearTimeout(fallbackTimeout);
+          throw new Error('Request timeout. Unable to load artwork. Please try again later.');
+        }
+      } else {
+        throw fetchError;
+      }
+    }
     
-    clearTimeout(timeoutId);
     if (!response.ok) {
       // Check for timeout errors
       if (response.status === 504) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Request timeout. The database query took too long. Please try again later.');
+        // Try fallback without images
+        console.warn("Request timed out with images, trying without images...");
+        const fallbackController = new AbortController();
+        const fallbackTimeout = setTimeout(() => fallbackController.abort(), 15000);
+        try {
+          response = await fetch(`/api/artwork?limit=10&includeImages=false&t=${Date.now()}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            },
+            signal: fallbackController.signal
+          });
+          clearTimeout(fallbackTimeout);
+          if (!response.ok) {
+            throw new Error('Request timeout. Unable to load artwork.');
+          }
+        } catch (fallbackError) {
+          clearTimeout(fallbackTimeout);
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Request timeout. The database query took too long. Please try again later.');
+        }
+      } else {
+        throw new Error(`Failed to load artwork: ${response.status}`);
       }
-      throw new Error(`Failed to load artwork: ${response.status}`);
     }
     const data = await response.json();
     // Only use fallback if we get an empty array - don't use fallback if we have real data
