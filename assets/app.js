@@ -916,23 +916,58 @@ async function handleDownloadPdf() {
   buttons.downloadPdf.textContent = t("status.generatingPdf");
 
   try {
-    // Fetch all pages for PDF
-    const response = await fetch(`/api/pdf?t=${Date.now()}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch pages for PDF");
-    }
-    const data = await response.json();
+    let pagesToUse = bookPages; // Default to cached pages
     
-    if (!data.pages || data.pages.length === 0) {
-      // Use current bookPages if API fails
+    // Try to fetch from API, but fall back to cached data on timeout
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      const response = await fetch(`/api/pdf?limit=10&t=${Date.now()}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.pages && data.pages.length > 0) {
+          // If images were excluded due to timeout, merge with cached images
+          if (data.imagesExcluded && bookPages.length > 0) {
+            pagesToUse = data.pages.map(page => {
+              const cachedPage = bookPages.find(p => p.id === page.id);
+              return cachedPage ? { ...page, imageUrl: cachedPage.imageUrl } : page;
+            });
+          } else {
+            pagesToUse = data.pages;
+          }
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData.useClientCache && bookPages.length > 0) {
+          console.log("API suggested using client cache, using cached pages");
+        } else if (bookPages.length === 0) {
+          throw new Error("No pages available to create PDF");
+        }
+      }
+    } catch (fetchError) {
+      // On fetch error (including timeout), use cached data
+      if (fetchError.name === 'AbortError') {
+        console.log("PDF API timed out, using cached pages");
+      } else {
+        console.warn("PDF API error, using cached pages:", fetchError.message);
+      }
+      
       if (bookPages.length === 0) {
         throw new Error("No pages available to create PDF");
       }
-      await generatePDF(bookPages);
-    } else {
-      await generatePDF(data.pages);
     }
 
+    if (pagesToUse.length === 0) {
+      throw new Error("No pages available to create PDF");
+    }
+
+    await generatePDF(pagesToUse);
     showStatus(t("status.pdfReady"), false, false);
   } catch (error) {
     console.error("PDF generation error:", error);

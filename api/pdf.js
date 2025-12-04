@@ -40,20 +40,72 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch all artwork for PDF generation
-    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    // Use smaller limit to avoid timeout with large base64 images
+    // Default to 10, max 20 to prevent timeout issues
+    const limit = Math.min(parseInt(req.query.limit) || 10, 20);
     
-    const { data, error } = await supabase
-      .from("kid_artwork")
-      .select("id, kid_name, story, prompt, image_url, created_at")
-      .order("created_at", { ascending: true })
-      .limit(limit);
+    // Option to exclude images (fetch metadata only, client will use cached images)
+    const includeImages = req.query.includeImages !== 'false';
+    
+    const selectFields = includeImages 
+      ? "id, kid_name, story, prompt, image_url, created_at"
+      : "id, kid_name, story, prompt, created_at";
+
+    // Try fetching with images first, fall back to metadata only if it times out
+    let data, error;
+    
+    if (includeImages) {
+      // First attempt with images
+      const result = await supabase
+        .from("kid_artwork")
+        .select(selectFields)
+        .order("created_at", { ascending: true })
+        .limit(limit);
+      
+      data = result.data;
+      error = result.error;
+      
+      // If timeout, retry without images
+      if (error?.code === '57014' || error?.message?.includes('timeout')) {
+        console.warn("Timeout with images, retrying without images...");
+        const fallbackResult = await supabase
+          .from("kid_artwork")
+          .select("id, kid_name, story, prompt, created_at")
+          .order("created_at", { ascending: true })
+          .limit(limit);
+        
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+        
+        // Mark that images need to be loaded client-side
+        if (!error && data) {
+          const entries = data.map(normalizeEntry).filter(Boolean);
+          return res.status(200).json({ 
+            success: true, 
+            pages: entries,
+            coverImage: "/assets/images/newCover.jpg",
+            imagesExcluded: true // Tell client to use cached images
+          });
+        }
+      }
+    } else {
+      // Explicitly requested without images
+      const result = await supabase
+        .from("kid_artwork")
+        .select(selectFields)
+        .order("created_at", { ascending: true })
+        .limit(limit);
+      
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error("Supabase fetch error:", error);
       if (error.code === '57014' || error.message?.includes('timeout')) {
         return res.status(504).json({ 
-          error: "Request timeout. The database query took too long." 
+          error: "Request timeout. Please try again or use fewer pages.",
+          useClientCache: true // Tell client to use its cached data
         });
       }
       return res.status(500).json({ error: "Failed to load artwork records." });
@@ -67,7 +119,9 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Unexpected fetch error:", error);
-    return res.status(500).json({ error: "Unexpected error while loading artwork records." });
+    return res.status(500).json({ 
+      error: "Unexpected error while loading artwork records.",
+      useClientCache: true
+    });
   }
 }
-
