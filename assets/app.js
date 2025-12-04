@@ -16,6 +16,7 @@ const buttons = {
   regenerate: document.getElementById("regenerateBtn"),
   prevPage: document.getElementById("prevPageBtn"),
   nextPage: document.getElementById("nextPageBtn"),
+  downloadPdf: document.getElementById("downloadPdfBtn"),
 };
 
 const promptForm = document.getElementById("promptForm");
@@ -87,6 +88,10 @@ const translations = {
     "status.missingPrompt": "Please describe your futuristic idea before we can paint it.",
     "status.saveError": "We couldn't save your story to the book. Please try again.",
     "book.page.emptyMessage": "Add a new masterpiece to fill this page.",
+    "book.downloadPdf": "📥 Download PDF Book",
+    "status.generatingPdf": "Creating your PDF book... 📚",
+    "status.pdfReady": "Your PDF is ready! Download starting...",
+    "status.pdfError": "Could not create the PDF. Please try again.",
   },
   ar: {
     "hero.tagline": "أطفال السعودية × الذكاء الاصطناعي",
@@ -128,6 +133,10 @@ const translations = {
     "status.missingPrompt": "يرجى وصف فكرتك المستقبلية قبل أن نرسمها.",
     "status.saveError": "تعذر حفظ قصتك في الكتاب. حاول مرة أخرى.",
     "book.page.emptyMessage": "أضف تحفة جديدة لملء هذه الصفحة.",
+    "book.downloadPdf": "📥 تحميل الكتاب PDF",
+    "status.generatingPdf": "جارٍ إنشاء كتابك... 📚",
+    "status.pdfReady": "الكتاب جاهز! جارٍ التحميل...",
+    "status.pdfError": "تعذر إنشاء الكتاب. حاول مرة أخرى.",
   },
 };
 
@@ -277,6 +286,8 @@ function attachEventListeners() {
       console.log("Cannot navigate: already at last page");
     }
   });
+
+  buttons.downloadPdf?.addEventListener("click", handleDownloadPdf);
 }
 
 function showView(view) {
@@ -894,5 +905,303 @@ async function generateViaPollinations(prompt) {
 
 function dataUrlFromBase64(base64String) {
   return `data:image/png;base64,${base64String}`;
+}
+
+// PDF Generation Functions
+async function handleDownloadPdf() {
+  if (!buttons.downloadPdf) return;
+  
+  const originalText = buttons.downloadPdf.textContent;
+  buttons.downloadPdf.disabled = true;
+  buttons.downloadPdf.textContent = t("status.generatingPdf");
+
+  try {
+    // Fetch all pages for PDF
+    const response = await fetch(`/api/pdf?t=${Date.now()}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch pages for PDF");
+    }
+    const data = await response.json();
+    
+    if (!data.pages || data.pages.length === 0) {
+      // Use current bookPages if API fails
+      if (bookPages.length === 0) {
+        throw new Error("No pages available to create PDF");
+      }
+      await generatePDF(bookPages);
+    } else {
+      await generatePDF(data.pages);
+    }
+
+    showStatus(t("status.pdfReady"), false, false);
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    showStatus(t("status.pdfError"), true, false);
+  } finally {
+    buttons.downloadPdf.disabled = false;
+    buttons.downloadPdf.textContent = originalText;
+  }
+}
+
+async function generatePDF(pages) {
+  const { jsPDF } = window.jspdf;
+  
+  // A4 size in mm: 210 x 297
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 15;
+  const contentWidth = pageWidth - (margin * 2);
+
+  // Colors matching the website
+  const greenDark = [6, 77, 49];    // #064d31
+  const greenMain = [11, 105, 68];  // #0b6944
+  const textMuted = [4, 42, 28, 0.7];
+  const gold = [247, 201, 72];      // #f7c948
+
+  // Load fonts - use built-in fonts
+  doc.setFont("helvetica");
+
+  // --- COVER PAGE ---
+  await addCoverPage(doc, pageWidth, pageHeight, margin, greenDark, greenMain, gold);
+
+  // --- CONTENT PAGES ---
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+    doc.addPage();
+    await addContentPage(doc, page, i + 1, pages.length, pageWidth, pageHeight, margin, contentWidth, greenDark, greenMain);
+  }
+
+  // Save the PDF
+  const fileName = `Saudi-Talent-Book-${new Date().toISOString().slice(0, 10)}.pdf`;
+  doc.save(fileName);
+}
+
+async function addCoverPage(doc, pageWidth, pageHeight, margin, greenDark, greenMain, gold) {
+  // Background gradient effect (simplified)
+  doc.setFillColor(246, 247, 239); // #f6f7ef
+  doc.rect(0, 0, pageWidth, pageHeight, "F");
+  
+  // Add gradient-like effect at top
+  doc.setFillColor(186, 163, 195); // Soft purple-pink for sky
+  doc.rect(0, 0, pageWidth, pageHeight * 0.4, "F");
+  
+  doc.setFillColor(232, 196, 177); // Soft peach for sunset
+  doc.rect(0, pageHeight * 0.35, pageWidth, pageHeight * 0.15, "F");
+
+  // Try to load and add the cover image
+  try {
+    const coverImg = await loadImage("/assets/images/newCover.jpg");
+    if (coverImg && coverImg.data) {
+      // Calculate dimensions to fit the page
+      const imgRatio = coverImg.width / coverImg.height;
+      const targetHeight = pageHeight;
+      const targetWidth = targetHeight * imgRatio;
+      
+      // Center the image
+      const xOffset = (pageWidth - targetWidth) / 2;
+      doc.addImage(coverImg.data, "JPEG", xOffset, 0, targetWidth, targetHeight);
+    }
+  } catch (err) {
+    console.warn("Could not load cover image, using text-only cover:", err);
+    
+    // Fallback: Text-only cover
+    // Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(32);
+    doc.setTextColor(...greenDark);
+    doc.text("Future Saudi", pageWidth / 2, pageHeight * 0.25, { align: "center" });
+    doc.text("Through Our Eyes", pageWidth / 2, pageHeight * 0.32, { align: "center" });
+    
+    // Subtitle
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(14);
+    doc.setTextColor(80, 80, 80);
+    doc.text("Dreams of tomorrow, painted by the children of today", pageWidth / 2, pageHeight * 0.42, { align: "center" });
+    
+    // Decorative elements
+    doc.setDrawColor(...gold);
+    doc.setLineWidth(1);
+    doc.line(margin + 20, pageHeight * 0.5, pageWidth - margin - 20, pageHeight * 0.5);
+    
+    // Saudi Talent Paint branding
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(...greenMain);
+    doc.text("Saudi Talent Paint", pageWidth / 2, pageHeight * 0.85, { align: "center" });
+  }
+}
+
+async function addContentPage(doc, pageData, pageNum, totalPages, pageWidth, pageHeight, margin, contentWidth, greenDark, greenMain) {
+  // Page background
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, pageWidth, pageHeight, "F");
+  
+  // Subtle gradient at top
+  doc.setFillColor(244, 251, 255); // Very light blue
+  doc.rect(0, 0, pageWidth, 60, "F");
+
+  // Header with page number
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...greenMain);
+  doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth / 2, margin, { align: "center" });
+
+  let yPosition = margin + 15;
+
+  // Kid's name - prominent styling
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(...greenDark);
+  const madeByText = currentLanguage === "ar" ? `من إبداع ${pageData.kidName}` : `Made by ${pageData.kidName}`;
+  doc.text(madeByText, pageWidth / 2, yPosition, { align: "center" });
+  yPosition += 10;
+
+  // Date
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(100, 100, 100);
+  const dateText = formatDate(pageData.generatedAt);
+  doc.text(dateText, pageWidth / 2, yPosition, { align: "center" });
+  yPosition += 15;
+
+  // Image
+  const imageMaxWidth = contentWidth * 0.85;
+  const imageMaxHeight = 110;
+  
+  if (pageData.imageUrl) {
+    try {
+      const img = await loadImage(pageData.imageUrl);
+      if (img && img.data) {
+        // Calculate dimensions maintaining aspect ratio
+        const imgRatio = img.width / img.height;
+        let imgWidth = imageMaxWidth;
+        let imgHeight = imgWidth / imgRatio;
+        
+        if (imgHeight > imageMaxHeight) {
+          imgHeight = imageMaxHeight;
+          imgWidth = imgHeight * imgRatio;
+        }
+        
+        const imgX = (pageWidth - imgWidth) / 2;
+        
+        // Add shadow effect (rounded rectangle behind image)
+        doc.setFillColor(230, 230, 230);
+        doc.roundedRect(imgX - 2, yPosition - 2, imgWidth + 4, imgHeight + 4, 5, 5, "F");
+        
+        // Add image with border
+        doc.addImage(img.data, "JPEG", imgX, yPosition, imgWidth, imgHeight);
+        
+        // Border
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(3);
+        doc.roundedRect(imgX, yPosition, imgWidth, imgHeight, 4, 4, "S");
+        
+        yPosition += imgHeight + 15;
+      }
+    } catch (err) {
+      console.warn("Could not load image for page", pageNum, err);
+      // Placeholder for missing image
+      doc.setFillColor(240, 240, 240);
+      doc.roundedRect(margin + 20, yPosition, contentWidth - 40, 80, 4, 4, "F");
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text("Image not available", pageWidth / 2, yPosition + 40, { align: "center" });
+      yPosition += 95;
+    }
+  }
+
+  // Story label
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(...greenDark);
+  const storyLabel = currentLanguage === "ar" ? "القصة:" : "Story:";
+  doc.text(storyLabel, pageWidth / 2, yPosition, { align: "center" });
+  yPosition += 8;
+
+  // Story content
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.setTextColor(60, 60, 60);
+  
+  const storyText = pageData.story || pageData.prompt || "—";
+  const lines = doc.splitTextToSize(storyText, contentWidth - 20);
+  
+  // Calculate text height
+  const lineHeight = 6;
+  const textHeight = lines.length * lineHeight;
+  
+  // Story box background
+  doc.setFillColor(250, 250, 245);
+  doc.roundedRect(margin + 5, yPosition - 3, contentWidth - 10, textHeight + 10, 3, 3, "F");
+  
+  // Story text
+  doc.text(lines, pageWidth / 2, yPosition + 4, { align: "center", lineHeightFactor: 1.5 });
+
+  // Footer
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9);
+  doc.setTextColor(150, 150, 150);
+  doc.text("Saudi Talent Paint • Saudi Kids x AI", pageWidth / 2, pageHeight - 10, { align: "center" });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    
+    img.onload = () => {
+      // Convert to canvas to get data URL
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      
+      try {
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        resolve({
+          data: dataUrl,
+          width: img.width,
+          height: img.height,
+        });
+      } catch (err) {
+        // CORS issue - try direct
+        resolve({
+          data: src,
+          width: img.width,
+          height: img.height,
+        });
+      }
+    };
+    
+    img.onerror = () => {
+      // If it's already a data URL, try to use it directly
+      if (src.startsWith("data:")) {
+        resolve({
+          data: src,
+          width: 400,
+          height: 300,
+        });
+      } else {
+        reject(new Error("Failed to load image"));
+      }
+    };
+    
+    // Handle data URLs directly
+    if (src.startsWith("data:")) {
+      img.src = src;
+    } else {
+      // Add cache busting for regular URLs
+      const separator = src.includes("?") ? "&" : "?";
+      img.src = `${src}${separator}t=${Date.now()}`;
+    }
+  });
 }
 
